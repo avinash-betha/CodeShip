@@ -35,6 +35,8 @@ console.log(
 );
 try {
   const page = await application.firstWindow();
+  // Hosted Windows desktops can be 1024px wide, where status text is intentionally hidden.
+  await page.setViewportSize({ width: 1600, height: 1000 });
   await expect(page.locator(".studio-shell")).toHaveCSS("display", "flex");
   await expect(
     page.getByRole("banner").getByRole("button", { name: "Docs", exact: true }),
