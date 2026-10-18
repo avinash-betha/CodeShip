@@ -1,0 +1,836 @@
+@if (mode() === "responsive") {
+  <div class="inspector-title">
+    <div><cs-icon name="spark" /><strong>Responsive studio</strong></div>
+    <span class="badge">{{ pending().length }}</span>
+  </div>
+  <div class="inspector-scroll responsive-panel">
+    <div class="responsive-intro">
+      <span class="eyebrow">MEASURE. UNDERSTAND. ADAPT.</span>
+      <h2>A better fit, at every size.</h2>
+      <p>
+        Recommendations come from real layout measurements across seven viewport
+        widths. Preview each change before applying it.
+      </p>
+    </div>
+    @if (store.busy()) {
+      <div class="analysis-loading">
+        <span class="spinner"></span>
+        <p>Measuring your layout…</p>
+        <small>Inspecting overflow, spacing, grids, and text.</small>
+      </div>
+    }
+    @if (!store.recommendations().length && !store.busy()) {
+      <div class="inspector-empty">
+        <cs-icon name="desktop" /><strong>No detected issues</strong>
+        <p>
+          Run an analysis after changing your design. Results are guidance:
+          always check layout and design intent visually.
+        </p>
+      </div>
+    }
+    @for (r of store.recommendations(); track r.id) {
+      <article class="recommendation" [class.resolved]="r.status !== 'pending'">
+        <div class="recommendation-meta">
+          <span [class]="'severity ' + r.severity">{{ r.severity }}</span
+          ><span>{{ r.confidence * 100 | number: "1.0-0" }}% confidence</span>
+        </div>
+        <h4>{{ r.title }}</h4>
+        <p>{{ r.explanation }}</p>
+        <button class="node-link" (click)="store.select(r.nodeId)">
+          <cs-icon name="pointer" />Select affected element
+          <cs-icon name="arrow" />
+        </button>
+        <details>
+          <summary>Review CSS changes</summary>
+          <span class="diff-label">CURRENT DECLARATIONS</span>
+          <pre class="css-before">{{ before(r) }}</pre>
+          <span class="diff-label">PROPOSED</span>
+          <pre class="css-after">{{ after(r) }}</pre>
+        </details>
+        @if (r.status === "pending") {
+          <div class="recommendation-actions">
+            <button
+              class="quiet-button"
+              (click)="
+                store.previewRecommendation.set(
+                  store.previewRecommendation()?.id === r.id ? null : r
+                )
+              "
+            >
+              <cs-icon name="eye" />{{
+                store.previewRecommendation()?.id === r.id
+                  ? "Original"
+                  : "Preview"
+              }}</button
+            ><button
+              class="primary-button compact"
+              [disabled]="r.confidence < 0.7"
+              (click)="store.applySuggestion(r)"
+            >
+              Apply<cs-icon name="check" /></button
+            ><button
+              class="icon-button"
+              aria-label="Reject recommendation"
+              (click)="store.rejectSuggestion(r.id)"
+            >
+              <cs-icon name="close" />
+            </button>
+          </div>
+          @if (r.alternatives?.length) {
+            <div class="alternative-options">
+              <small>Choose the layout that fits your intent:</small>
+              @for (a of r.alternatives; track a.label) {
+                <button class="quiet-button" (click)="alternative(r, a)">
+                  {{ a.label }} <cs-icon name="arrow" />
+                </button>
+              }
+            </div>
+          }
+        } @else {
+          <span class="resolved-label"
+            ><cs-icon [name]="r.status === 'applied' ? 'check' : 'close'" />{{
+              r.status
+            }}</span
+          >
+        }
+      </article>
+    }
+    <p class="panel-hint">
+      After applying changes, analyze again to measure unresolved issues.
+      Intentional overlaps, clipping, and browser-specific behavior need manual
+      review.
+    </p>
+  </div>
+} @else {
+  <div class="panel-tabs" role="tablist" aria-label="Inspector">
+    @for (
+      t of [
+        ["design", "Design"],
+        ["html", "HTML"],
+        ["motion", "Motion"],
+      ];
+      track t[0]
+    ) {
+      <button
+        role="tab"
+        [attr.aria-selected]="tab() === t[0]"
+        [class.active]="tab() === t[0]"
+        (click)="tab.set(t[0])"
+      >
+        {{ t[1] }}
+      </button>
+    }
+  </div>
+  <div class="inspector-scroll">
+    @if (store.node(); as node) {
+      @if (node.tag === "svg") {
+        <details class="property-section" open>
+          <summary>Button icon placement</summary>
+          <p class="panel-hint">
+            Drag this icon onto a button, or choose a target and placement
+            below.
+          </p>
+          <div class="property-grid padded">
+            <label class="field full"
+              >Button or link<select
+                aria-label="Button for selected icon"
+                [ngModel]="iconTarget()"
+                (ngModelChange)="iconTarget.set($event)"
+              >
+                <option value="">Choose a button or link</option>
+                @for (button of iconButtons(); track button.id) {
+                  <option [value]="button.id">{{ button.label }}</option>
+                }
+              </select></label
+            >
+            <label class="field full"
+              >Placement<select
+                aria-label="Selected icon placement"
+                [ngModel]="iconPlacement()"
+                (ngModelChange)="iconPlacement.set($event)"
+              >
+                @for (placement of iconPlacements; track placement.value) {
+                  <option [value]="placement.value">
+                    {{ placement.label }}
+                  </option>
+                }
+              </select></label
+            >
+            <button
+              class="quiet-button full"
+              [disabled]="!iconTarget()"
+              (click)="placeSelectedIcon()"
+            >
+              Apply icon placement
+            </button>
+          </div>
+        </details>
+      }
+      @if (node.tag === "svg" && node.attributes["data-cs-icon"]) {
+        <button
+          class="quiet-button inspector-icon-edit"
+          (click)="editIcon.emit()"
+        >
+          <cs-icon name="component" />Edit in Icon Factory
+        </button>
+      }
+      <div class="selected-element">
+        <span class="element-icon"
+          ><cs-icon [name]="node.tag.startsWith('h') ? 'heading' : 'box'"
+        /></span>
+        <div>
+          <input
+            aria-label="Element name"
+            [ngModel]="node.name"
+            (ngModelChange)="store.update({ name: $event })"
+          /><small
+            >&lt;{{ node.tag }}&gt;
+            <span>· {{ store.selected().length }} selected</span></small
+          >
+        </div>
+        <button
+          class="icon-button small"
+          aria-label="Duplicate selected element"
+          title="Duplicate"
+          (click)="store.duplicate()"
+        >
+          <cs-icon name="copy" />
+        </button>
+      </div>
+      @if (tab() === "design") {
+        <div class="style-context">
+          <label
+            >State<select
+              aria-label="CSS interactive state"
+              [ngModel]="store.pseudo()"
+              (ngModelChange)="store.pseudo.set($event)"
+            >
+              <option value="">Default</option>
+              <option value=":hover">Hover</option>
+              <option value=":focus">Focus</option>
+              <option value=":focus-visible">Focus visible</option>
+              <option value=":active">Active</option>
+              <option value="::before">Before</option>
+              <option value="::after">After</option>
+            </select></label
+          ><label
+            >Breakpoint<select
+              aria-label="Responsive style context"
+              [ngModel]="store.query()"
+              (ngModelChange)="store.query.set($event)"
+            >
+              <option value="">Base styles</option>
+              <option value="@media (max-width: 768px)">≤ 768px</option>
+              <option value="@media (max-width: 480px)">≤ 480px</option>
+              <option value="@container (max-width: 600px)">
+                Container ≤ 600px
+              </option>
+            </select></label
+          >
+        </div>
+        <label class="field full text-content"
+          >Content<textarea
+            aria-label="Element text"
+            rows="2"
+            [ngModel]="node.text"
+            (change)="store.update({ text: $any($event.target).value })"
+          ></textarea>
+        </label>
+        @for (group of groups; track group) {
+          <details class="property-section" [open]="group !== 'Appearance'">
+            <summary>
+              <span>{{ group }}</span
+              ><cs-icon name="plus" />
+            </summary>
+            <div class="property-grid">
+              @for (control of registry; track control.property) {
+                @if (control.group === group) {
+                  <label
+                    class="field"
+                    [class.full]="
+                      [
+                        'grid-template-columns',
+                        'font-family',
+                        'background',
+                        'box-shadow',
+                        'transform',
+                      ].includes(control.property)
+                    "
+                    ><span>{{ control.label }}</span>
+                    @if (control.choices) {
+                      <select
+                        [attr.aria-label]="control.label"
+                        [ngModel]="store.style()[control.property] || ''"
+                        (ngModelChange)="
+                          store.setStyle(control.property, $event)
+                        "
+                      >
+                        @for (choice of control.choices; track choice) {
+                          <option [value]="choice">
+                            {{ choice || "Inherited" }}
+                          </option>
+                        }
+                      </select>
+                    } @else {
+                      <input
+                        [attr.aria-label]="control.label"
+                        [placeholder]="control.placeholder ?? 'Inherited'"
+                        [ngModel]="store.style()[control.property] || ''"
+                        (change)="
+                          store.setStyle(
+                            control.property,
+                            $any($event.target).value
+                          )
+                        "
+                      />
+                    }
+                  </label>
+                }
+              }
+            </div>
+            <button class="section-reset" (click)="resetGroup(group)">
+              Reset {{ group.toLowerCase() }} section
+            </button>
+          </details>
+        }
+        <details class="property-section">
+          <summary><span>Style presets</span><cs-icon name="brush" /></summary>
+          <div class="preset-grid">
+            @for (p of presets; track p.name) {
+              <button
+                (click)="applyPreset(p)"
+                [attr.aria-label]="'Apply ' + p.name + ' style'"
+              >
+                <span
+                  class="preset-swatch"
+                  [style.background]="p.values['background']"
+                  [style.border-radius]="p.values['border-radius']"
+                ></span
+                >{{ p.name }}
+              </button>
+            }
+          </div>
+          <p class="panel-hint">
+            Apply to the selection. Your content stays editable. Save the result
+            as a reusable block.
+          </p>
+        </details>
+        <details class="property-section">
+          <summary>
+            <span>Glassmorphism Studio</span><cs-icon name="layers" />
+          </summary>
+          <div class="property-grid">
+            <label class="field"
+              >Surface tint<input
+                type="color"
+                aria-label="Glass tint"
+                [(ngModel)]="glass.tint" /></label
+            ><label class="field"
+              >Opacity %<input
+                type="number"
+                min="10"
+                max="100"
+                aria-label="Glass opacity"
+                [(ngModel)]="glass.opacity"
+            /></label>
+            <label class="field"
+              >Blur px<input
+                type="number"
+                min="0"
+                max="80"
+                aria-label="Glass blur"
+                [(ngModel)]="glass.blur" /></label
+            ><label class="field"
+              >Saturation %<input
+                type="number"
+                min="0"
+                max="250"
+                aria-label="Glass saturation"
+                [(ngModel)]="glass.saturation"
+            /></label>
+            <label class="field"
+              >Border opacity %<input
+                type="number"
+                min="0"
+                max="100"
+                aria-label="Glass border opacity"
+                [(ngModel)]="glass.borderOpacity" /></label
+            ><label class="field"
+              >Radius px<input
+                type="number"
+                min="0"
+                max="80"
+                aria-label="Glass radius"
+                [(ngModel)]="glass.radius"
+            /></label>
+            <label class="field"
+              >Shadow %<input
+                type="number"
+                min="0"
+                max="70"
+                aria-label="Glass shadow"
+                [(ngModel)]="glass.shadow" /></label
+            ><label class="field"
+              >Variant<select
+                aria-label="Glass color variant"
+                [ngModel]="glass.dark"
+                (ngModelChange)="setGlassVariant($event)"
+              >
+                <option [ngValue]="false">Light</option>
+                <option [ngValue]="true">Dark</option>
+              </select></label
+            >
+            <label class="field full checkbox-field"
+              ><input type="checkbox" [(ngModel)]="glass.gradient" />Gradient
+              surface</label
+            ><button class="primary-button full" (click)="applyGlass()">
+              Apply glass effect
+            </button>
+          </div>
+          <p class="panel-hint">
+            Opaque fallbacks and reduced transparency styles are included. Check
+            contrast over the actual background.
+          </p>
+        </details>
+        <details class="property-section">
+          <summary>
+            <span>Custom CSS property</span><cs-icon name="plus" />
+          </summary>
+          <div class="property-grid">
+            <label class="field"
+              >Property<input
+                [(ngModel)]="customProperty"
+                list="css-property-suggestions"
+                placeholder="--brand-color"
+                aria-label="Custom CSS property" /></label
+            ><label class="field"
+              >Value<input
+                [(ngModel)]="customValue"
+                placeholder="#b6ed9c"
+                aria-label="Custom CSS value"
+            /></label>
+            <datalist id="css-property-suggestions">
+              @for (p of registry; track p.property) {
+                <option [value]="p.property"></option>
+              }
+              @for (
+                p of [
+                  "float",
+                  "clear",
+                  "clip-path",
+                  "backdrop-filter",
+                  "-webkit-mask-image",
+                  "--brand-color",
+                ];
+                track p
+              ) {
+                <option [value]="p"></option>
+              }
+            </datalist>
+            <div class="css-draft-actions full">
+              <button class="quiet-button" (click)="applyCustom()">
+                Apply declaration<cs-icon name="check" /></button
+              ><button class="quiet-button" (click)="resetCustom()">
+                Reset draft
+              </button>
+            </div>
+          </div>
+          @if (customError()) {
+            <p class="css-custom-note" role="status">{{ customError() }}</p>
+          }
+          <div class="css-declaration-list">
+            @for (entry of ownDeclarations(); track entry[0]) {
+              <div class="css-declaration-row">
+                <label
+                  >{{ entry[0]
+                  }}<input
+                    [attr.aria-label]="'CSS declaration ' + entry[0]"
+                    [ngModel]="entry[1]"
+                    (change)="
+                      store.setStyle(entry[0], $any($event.target).value)
+                    " /></label
+                ><button
+                  class="icon-button small"
+                  [attr.aria-label]="'Reset CSS property ' + entry[0]"
+                  (click)="store.setStyle(entry[0], '')"
+                >
+                  <cs-icon name="close" />
+                </button>
+              </div>
+            }
+          </div>
+          <p class="panel-hint">
+            Use the CSS workspace for selectors, layers, nesting, functions, and
+            advanced syntax.
+          </p>
+        </details>
+      } @else if (tab() === "html") {
+        <div class="property-grid padded">
+          <label class="field"
+            >HTML tag<input
+              aria-label="HTML tag"
+              [ngModel]="node.tag"
+              (change)="
+                store.update({ tag: $any($event.target).value.toLowerCase() })
+              " /></label
+          ><label class="field"
+            >HTML ID<input
+              aria-label="HTML ID"
+              [ngModel]="node.attributes['id'] || ''"
+              (change)="
+                store.setAttribute('id', $any($event.target).value)
+              " /></label
+          ><label class="field full"
+            >Classes<input
+              aria-label="CSS classes"
+              [ngModel]="node.attributes['class'] || ''"
+              (change)="
+                store.setAttribute('class', $any($event.target).value)
+              " /></label
+          ><label class="field full"
+            >Content<textarea
+              aria-label="HTML text content"
+              [ngModel]="node.text"
+              (change)="store.update({ text: $any($event.target).value })"
+            ></textarea>
+          </label>
+        </div>
+        <details class="property-section" open>
+          <summary>
+            <span>Attributes & accessibility</span><cs-icon name="plus" />
+          </summary>
+          @for (a of attributes(); track a[0]) {
+            <div class="attribute-row">
+              <span>{{ a[0] }}</span
+              ><input
+                [attr.aria-label]="'Attribute ' + a[0]"
+                [ngModel]="a[1]"
+                (change)="store.setAttribute(a[0], $any($event.target).value)"
+              /><button
+                class="icon-button small"
+                [attr.aria-label]="'Remove attribute ' + a[0]"
+                (click)="removeAttribute(a[0])"
+              >
+                <cs-icon name="close" />
+              </button>
+            </div>
+          }
+          <div class="property-grid padded">
+            <label class="field"
+              >Attribute<input
+                [(ngModel)]="newAttribute"
+                placeholder="aria-label"
+                aria-label="New attribute name" /></label
+            ><label class="field"
+              >Value<input
+                [(ngModel)]="newValue"
+                placeholder="Accessible label"
+                aria-label="New attribute value" /></label
+            ><button class="quiet-button full" (click)="addAttribute()">
+              Add attribute<cs-icon name="plus" />
+            </button>
+          </div>
+        </details>
+        <details class="property-section" open>
+          <summary><span>Interactions</span><cs-icon name="plus" /></summary>
+          <div class="property-grid padded">
+            <label class="field"
+              >Event<select
+                [(ngModel)]="interactionEvent"
+                aria-label="Interaction event"
+              >
+                <option>click</option>
+                <option>submit</option>
+                @for (
+                  e of ["input", "change", "dragstart", "dragover", "drop"];
+                  track e
+                ) {
+                  <option>{{ e }}</option>
+                }
+              </select></label
+            ><label class="field"
+              >Action<select
+                [(ngModel)]="interactionAction"
+                aria-label="Interaction action"
+              >
+                <option value="toggle-class">Toggle class</option>
+                <option value="set-text">Set text</option>
+                <option value="navigate">Navigate</option>
+                @for (
+                  a of [
+                    "filter",
+                    "sort",
+                    "paginate",
+                    "select-panel",
+                    "dialog",
+                    "add-item",
+                    "drag-reorder",
+                    "range-output",
+                    "show-message",
+                  ];
+                  track a
+                ) {
+                  <option [value]="a">{{ a }}</option>
+                }
+              </select></label
+            ><label class="field full"
+              >Target element ID<input
+                [(ngModel)]="interactionTarget"
+                [placeholder]="node.id"
+                aria-label="Interaction target ID" /></label
+            ><label class="field full"
+              >Value<input
+                [(ngModel)]="interactionValue"
+                placeholder="Class, text, or URL"
+                aria-label="Interaction value" /></label
+            ><button class="quiet-button full" (click)="addInteraction()">
+              Add interaction<cs-icon name="plus" />
+            </button>
+          </div>
+          @for (i of node.interactions; track $index) {
+            <div class="interaction-row">
+              <span
+                >{{ i.event }} → {{ i.action
+                }}<small>{{ i.value }}</small></span
+              ><button
+                class="icon-button small"
+                aria-label="Remove interaction"
+                (click)="removeInteraction($index)"
+              >
+                <cs-icon name="trash" />
+              </button>
+            </div>
+          }
+        </details>
+      } @else {
+        <details class="property-section" open>
+          <summary><span>Transition</span><cs-icon name="animation" /></summary>
+          <div class="property-grid">
+            <label class="field"
+              >Property<input
+                [(ngModel)]="transitionProperty"
+                aria-label="Transition property" /></label
+            ><label class="field"
+              >Duration · ms<input
+                type="number"
+                min="0"
+                [(ngModel)]="transitionDuration"
+                aria-label="Transition duration" /></label
+            ><label class="field"
+              >Delay · ms<input
+                type="number"
+                min="0"
+                [(ngModel)]="transitionDelay"
+                aria-label="Transition delay" /></label
+            ><label class="field"
+              >Easing<input
+                [(ngModel)]="transitionEasing"
+                aria-label="Transition easing" /></label
+            ><button class="quiet-button full" (click)="transition()">
+              Apply transition <cs-icon name="check" />
+            </button>
+          </div>
+          <p class="panel-hint">
+            Edit hover, focus, and active styles from Design → State.
+          </p>
+        </details>
+        <details class="property-section" open>
+          <summary>
+            <span>Keyframe animation</span><cs-icon name="animation" />
+          </summary>
+          <div class="property-grid">
+            <label class="field"
+              >Name<input
+                [(ngModel)]="animation.name"
+                aria-label="Animation name" /></label
+            ><label class="field"
+              >Duration · ms<input
+                type="number"
+                min="0"
+                [(ngModel)]="animation.duration"
+                aria-label="Animation duration" /></label
+            ><label class="field"
+              >Delay · ms<input
+                type="number"
+                min="0"
+                [(ngModel)]="animation.delay"
+                aria-label="Animation delay" /></label
+            ><label class="field"
+              >Iterations<input
+                [(ngModel)]="animation.iterations"
+                aria-label="Animation iterations" /></label
+            ><label class="field full"
+              >Easing curve<input
+                [(ngModel)]="animation.easing"
+                aria-label="Animation easing curve"
+            /></label>
+            <div class="bezier-editor full">
+              <svg
+                viewBox="0 0 120 100"
+                role="img"
+                aria-label="Cubic bezier easing preview"
+              >
+                <path d="M10 10V90H110" fill="none" stroke="#52665b" />
+                <path
+                  d="M10 90 110 10"
+                  stroke="#3f5448"
+                  stroke-dasharray="3 3"
+                />
+                <path
+                  [attr.d]="curvePath()"
+                  fill="none"
+                  stroke="#b7ed98"
+                  stroke-width="2"
+                />
+              </svg>
+              <div>
+                @for (
+                  label of ["x1", "y1", "x2", "y2"];
+                  track label;
+                  let i = $index
+                ) {
+                  <label
+                    >{{ label
+                    }}<input
+                      type="number"
+                      step="0.05"
+                      [attr.aria-label]="'Bezier ' + label"
+                      [value]="curveValues()[i]"
+                      (input)="setCurve(i, $any($event.target).value)"
+                  /></label>
+                }
+              </div>
+            </div>
+            <label class="field"
+              >Direction<select
+                [(ngModel)]="animation.direction"
+                aria-label="Animation direction"
+              >
+                <option>normal</option>
+                <option>reverse</option>
+                <option>alternate</option>
+                <option>alternate-reverse</option>
+              </select></label
+            ><label class="field"
+              >Fill mode<select
+                [(ngModel)]="animation.fill"
+                aria-label="Animation fill mode"
+              >
+                <option>both</option>
+                <option>forwards</option>
+                <option>backwards</option>
+                <option>none</option>
+              </select></label
+            >
+          </div>
+          <div class="timeline">
+            <div class="timeline-ruler">
+              <span>0%</span><span>50%</span><span>100%</span>
+            </div>
+            <div class="timeline-track">
+              @for (f of frames(); track $index) {
+                <button
+                  class="keyframe-diamond"
+                  type="button"
+                  [attr.aria-label]="'Drag keyframe ' + $index"
+                  (pointerdown)="dragFrame($event, $index)"
+                  [style.left.%]="f.offset"
+                  [title]="f.offset + '%'"
+                ></button>
+              }
+            </div>
+          </div>
+          @for (f of frames(); track $index; let i = $index) {
+            <div class="keyframe-row">
+              <label
+                >Offset<input
+                  type="number"
+                  min="0"
+                  max="100"
+                  [ngModel]="f.offset"
+                  (change)="setFrame(i, 'offset', $any($event.target).value)"
+                  [attr.aria-label]="'Keyframe ' + i + ' offset'" /></label
+              ><label
+                >Opacity<input
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  [ngModel]="f.opacity"
+                  (change)="setFrame(i, 'opacity', $any($event.target).value)"
+                  [attr.aria-label]="'Keyframe ' + i + ' opacity'" /></label
+              ><label class="full"
+                >Transform<input
+                  [ngModel]="f.transform"
+                  (change)="setFrame(i, 'transform', $any($event.target).value)"
+                  [attr.aria-label]="'Keyframe ' + i + ' transform'" /></label
+              ><button
+                class="icon-button small"
+                aria-label="Remove keyframe"
+                [disabled]="frames().length <= 2"
+                (click)="removeFrame(i)"
+              >
+                <cs-icon name="close" />
+              </button>
+            </div>
+          }
+          <div class="padded motion-actions">
+            <button class="quiet-button" (click)="addFrame()">
+              <cs-icon name="plus" />Keyframe</button
+            ><button class="primary-button compact" (click)="applyAnimation()">
+              Apply animation</button
+            ><button class="quiet-button full" (click)="previewAnimation()">
+              <cs-icon name="play" />Replay animation
+            </button>
+          </div>
+          <p class="panel-hint">
+            Includes an automatic reduced-motion alternative. Advanced animation
+            syntax remains editable in CSS.
+          </p>
+        </details>
+      }
+      <details class="property-section">
+        <summary>
+          <span>Save as reusable block</span><cs-icon name="box" />
+        </summary>
+        <div class="padded">
+          <input
+            class="full"
+            [(ngModel)]="blockName"
+            [placeholder]="node.name"
+            aria-label="Reusable block name"
+          /><button class="quiet-button full" (click)="saveBlock()">
+            Save to blocks<cs-icon name="save" />
+          </button>
+        </div>
+      </details>
+      <div class="inspector-footer">
+        <button class="quiet-button danger" (click)="store.remove()">
+          <cs-icon name="trash" />Delete element</button
+        ><span>{{ node.id }}</span>
+      </div>
+    } @else {
+      <div class="inspector-empty">
+        <span class="empty-icon"><cs-icon name="pointer" /></span
+        ><strong>Make it your own.</strong>
+        <p>
+          Select an element on the canvas to edit its styles, content, and
+          behavior.
+        </p>
+        <span class="keyboard-tip"
+          ><kbd>Shift</kbd> + click to select multiple</span
+        >
+      </div>
+      <div class="page-overview">
+        <span class="eyebrow">YOUR WORKSPACE</span>
+        <h2>Every detail. In your control.</h2>
+        <p>
+          Design visually. Fine-tune with code. Ship to your favorite framework.
+        </p>
+        <div><cs-icon name="check" />Locally saved, always yours</div>
+        <div><cs-icon name="check" />Framework independent</div>
+        <div><cs-icon name="check" />Real HTML & CSS</div>
+      </div>
+    }
+  </div>
+}

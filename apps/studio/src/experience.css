@@ -1,0 +1,556 @@
+/* CodeShip product rhythm: readable controls, original iconography and guided entry. */
+:root {
+  --space-field: 8px;
+  --space-section: 24px;
+}
+.studio-shell .field input,
+.studio-shell .field select,
+.studio-shell .field textarea {
+  font-size: 11px;
+  min-height: 34px;
+  border-radius: 7px;
+}
+.studio-shell .style-context label,
+.studio-shell .style-context select {
+  font-size: 10px;
+}
+.studio-shell .inspector-icon-edit {
+  width: calc(100% - 28px);
+  margin: 14px;
+}
+.studio-shell .primary-button,
+.studio-shell .quiet-button,
+.studio-dialog .primary-button,
+.studio-dialog .quiet-button {
+  font-size: 12px;
+  min-height: 36px;
+  border-radius: 8px;
+}
+.studio-shell .workspace-tab {
+  font-size: 12px;
+  gap: 8px;
+  white-space: nowrap;
+}
+.studio-shell .workspace-left {
+  min-width: 0;
+  gap: 4px;
+}
+.studio-shell .workspace-right {
+  min-width: 160px;
+}
+.studio-shell .primitive-card {
+  min-height: 82px;
+  border-radius: 9px;
+  gap: 12px;
+}
+.studio-shell .primitive-card > cs-icon {
+  width: 23px;
+  height: 23px;
+  color: #aab6a5;
+}
+.studio-shell .primitive-card span {
+  font-size: 10px;
+}
+.studio-shell .category-filter button {
+  font-size: 10px;
+  padding: 6px 8px;
+}
+.studio-shell .library-heading {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+.studio-shell .panel-hint {
+  font-size: 11px;
+  line-height: 1.8;
+}
+.studio-shell .field,
+.studio-dialog .field {
+  gap: var(--space-field);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.studio-shell .property-row {
+  margin-bottom: 12px;
+}
+.studio-dialog {
+  border-radius: 18px;
+}
+.studio-dialog .dialog-header {
+  margin-bottom: 24px;
+}
+.studio-dialog .dialog-description {
+  font-size: 13px;
+  line-height: 1.8;
+}
+.studio-shell .learning-launch {
+  color: var(--accent);
+}
+.studio-shell .factory-launch {
+  color: #bfcea7;
+}
+.studio-dialog.welcome-dialog {
+  width: min(830px, 94vw);
+  padding: 32px;
+  background: radial-gradient(at 50% 0%, #34432c60, transparent 50%), #1e221f;
+}
+.welcome-dialog .dialog-header {
+  margin-bottom: 6px;
+}
+.welcome-dialog .dialog-header .eyebrow {
+  color: #9aaa8c;
+}
+.welcome-dialog .dialog-header h2 {
+  font-size: 23px;
+}
+.welcome-hero {
+  text-align: center;
+  max-width: 570px;
+  margin: 0 auto;
+  padding: 22px 10px 30px;
+}
+.welcome-hero h3 {
+  font-size: 32px;
+  letter-spacing: -1.3px;
+  line-height: 1.2;
+  font-weight: 550;
+  margin: 20px 0 14px;
+  color: #eaf3e3;
+}
+.welcome-hero > p {
+  font-size: 14px;
+  line-height: 1.85;
+  color: #a6b09f;
+  margin: 0 auto 24px;
+  max-width: 480px;
+}
+.welcome-hero > small {
+  display: block;
+  color: #84937b;
+  margin-top: 14px;
+  font-size: 11px;
+}
+.welcome-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #485b3b;
+  border-radius: 20px;
+  padding: 6px 10px;
+  color: #b8d6a2;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+.welcome-tour {
+  padding: 12px 22px !important;
+  font-size: 13px !important;
+  gap: 12px;
+  box-shadow: 0 4px 25px #9bce6b18;
+}
+.welcome-art {
+  width: 260px;
+  height: 115px;
+  position: relative;
+  margin: 0 auto 22px;
+}
+.welcome-art > span {
+  position: absolute;
+  border: 1px solid #566746;
+  border-radius: 16px;
+  background: #35442d;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  left: 100px;
+  top: 12px;
+  transform: rotate(-8deg);
+  box-shadow: 0 8px 30px #0002;
+}
+.welcome-art cs-icon {
+  width: 28px;
+  height: 28px;
+  color: #c1ed9e;
+}
+.welcome-art > span:first-child {
+  left: 20px;
+  top: 30px;
+  transform: rotate(-18deg);
+  background: #283327;
+}
+.welcome-art > span:last-of-type {
+  left: 179px;
+  top: 30px;
+  transform: rotate(15deg);
+  background: #283327;
+}
+.welcome-art > i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: #b8ed97;
+  border-radius: 50%;
+  left: 65px;
+  top: 10px;
+}
+.welcome-art > i:nth-last-child(2) {
+  left: 218px;
+  top: 7px;
+  width: 3px;
+  height: 3px;
+}
+.welcome-art > i:last-child {
+  left: 154px;
+  top: 102px;
+  width: 3px;
+  height: 3px;
+  opacity: 0.5;
+}
+.welcome-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.welcome-options > button {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  gap: 14px;
+  border: 1px solid #384332;
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 82px;
+  background: #252d23;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.welcome-options > button:hover {
+  background: #303e29;
+  border-color: #637f50;
+}
+.welcome-options > button:last-child {
+  grid-column: 1 / -1;
+}
+.welcome-options > button > cs-icon {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  color: #8da37d;
+}
+.welcome-option-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  background: #33432a;
+  border: 1px solid #485e39;
+  border-radius: 10px;
+  color: #badb9f;
+  flex-shrink: 0;
+}
+.welcome-option-icon cs-icon {
+  width: 21px;
+  height: 21px;
+}
+.welcome-options strong {
+  display: block;
+  color: #dce9d3;
+  font-size: 12px;
+  font-weight: 600;
+}
+.welcome-options small {
+  display: block;
+  color: #8f9f83;
+  font-size: 11px;
+  margin-top: 5px;
+}
+.welcome-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 24px 0 0;
+  font-size: 10px;
+}
+.welcome-footer > span,
+.welcome-footer > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a488;
+}
+.welcome-footer > button {
+  color: #c7e4b0;
+  padding: 8px 0;
+}
+.welcome-footer cs-icon {
+  width: 13px;
+  height: 13px;
+}
+.studio-dialog.learning-dialog {
+  width: min(970px, 94vw);
+}
+.learning-intro {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.learning-intro p {
+  font-size: 13px;
+  color: #a6b19e;
+}
+.learning-search {
+  margin: 22px 0;
+  max-width: none;
+}
+.learning-search input {
+  font-size: 13px;
+  padding: 13px 0;
+}
+.learning-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #92a085;
+  font-size: 11px;
+  margin-top: 8px;
+}
+.learning-progress button {
+  color: #c3dfab;
+  padding: 8px;
+}
+.learning-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.learning-grid > article {
+  padding: 24px;
+  border: 1px solid #37422f;
+  border-radius: 13px;
+  background: linear-gradient(130deg, #293124, #22271f);
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+}
+.learning-icon {
+  display: grid;
+  place-items: center;
+  border: 1px solid #475c38;
+  border-radius: 10px;
+  background: #35472a;
+  color: #c0dfab;
+  width: 39px;
+  height: 39px;
+}
+.learning-icon cs-icon {
+  width: 21px;
+  height: 21px;
+}
+.learning-grid h3 {
+  font-size: 17px;
+  font-weight: 550;
+  letter-spacing: -0.4px;
+  margin: 18px 0 10px;
+}
+.learning-grid p {
+  font-size: 12px;
+  line-height: 1.85;
+  color: #a2b095;
+  margin: 0 0 16px;
+}
+.learning-example {
+  font-size: 11px;
+  line-height: 1.8;
+  padding: 12px;
+  border-left: 2px solid #739255;
+  background: #1e281a;
+  border-radius: 0 6px 6px 0;
+  color: #aec69c;
+  margin: auto 0 16px;
+}
+.learning-grid article > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #c2e6a4;
+  font-size: 11px;
+  padding: 6px 0;
+}
+.help-learning {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  background: #2b3823;
+  border: 1px solid #465b36;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.help-learning > cs-icon {
+  color: var(--accent);
+  width: 24px;
+  height: 24px;
+}
+.help-learning > .primary-button {
+  margin-left: auto;
+}
+.tutorial-highlight {
+  position: fixed;
+  z-index: 1001;
+  border: 2px solid #b7ed98;
+  border-radius: 10px;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 4px #b7ed9818,
+    0 0 28px #b7ed9822;
+}
+.tutorial-card {
+  position: fixed;
+  z-index: 1002;
+  width: 340px;
+  bottom: 62px;
+  right: 310px;
+  padding: 20px;
+  border: 1px solid #738e5b;
+  border-radius: 15px;
+  background: linear-gradient(140deg, #2d3b24, #1e281b);
+  box-shadow: 0 12px 60px #0006;
+}
+.tutorial-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tutorial-card .eyebrow {
+  font-size: 9px;
+  color: #c4dfa8;
+}
+.tutorial-progress {
+  height: 3px;
+  background: #44563a;
+  border-radius: 4px;
+  margin: 14px 0 20px;
+  overflow: hidden;
+}
+.tutorial-progress span {
+  height: 100%;
+  display: block;
+  background: #b7ed98;
+  transition: width 0.2s;
+}
+.tutorial-card h2 {
+  font-size: 20px;
+  letter-spacing: -0.6px;
+  font-weight: 550;
+  margin: 0 0 12px;
+}
+.tutorial-card p {
+  font-size: 12px;
+  color: #b0c1a1;
+  line-height: 1.85;
+  margin: 0 0 18px;
+}
+.tutorial-action-hint {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px;
+  color: #cceab5;
+  background: #3d5130;
+  border-radius: 8px;
+  font-size: 11px;
+  border: 1px solid #536d41;
+}
+.tutorial-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 16px;
+}
+.tutorial-navigation button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #c1d4af;
+  padding: 8px 0;
+  font-size: 10px;
+}
+.tutorial-navigation button:last-child {
+  color: #e2f5d2;
+}
+@media (max-width: 1100px) {
+  .tutorial-card {
+    right: 24px;
+  }
+  .studio-shell .workspace-tab {
+    font-size: 11px;
+  }
+}
+@media (max-width: 700px) {
+  .welcome-dialog,
+  .learning-dialog {
+    padding: 22px;
+  }
+  .welcome-dialog .dialog-header h2 {
+    font-size: 20px;
+  }
+  .welcome-hero {
+    padding-top: 10px;
+  }
+  .welcome-hero h3 {
+    font-size: 27px;
+  }
+  .welcome-hero > p {
+    font-size: 13px;
+  }
+  .welcome-options {
+    grid-template-columns: 1fr;
+  }
+  .welcome-options > button {
+    padding: 14px;
+    min-height: 74px;
+  }
+  .welcome-art {
+    height: 95px;
+    margin-bottom: 18px;
+  }
+  .learning-grid {
+    grid-template-columns: 1fr;
+  }
+  .studio-shell .workspace-right {
+    min-width: 0;
+  }
+  .studio-shell .workspace-tab {
+    font-size: 0;
+    padding: 8px;
+  }
+  .studio-shell .workspace-tab cs-icon {
+    width: 19px;
+    height: 19px;
+  }
+  .studio-shell .workspace-left > .icon-button {
+    display: inline-flex;
+  }
+  .studio-shell .workspace-right > button:last-child {
+    display: inline-flex;
+  }
+  .tutorial-card {
+    width: min(340px, calc(100vw - 24px));
+    right: 12px;
+    bottom: 42px;
+    padding: 16px;
+  }
+  .tutorial-card p {
+    max-height: 110px;
+    overflow: auto;
+  }
+}

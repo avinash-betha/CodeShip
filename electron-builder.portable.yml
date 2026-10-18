@@ -1,0 +1,6 @@
+extends: electron-builder.yml
+artifactName: CodeShip-${version}-${arch}-portable.${ext}
+win:
+  target:
+    - target: portable
+      arch: [x64]

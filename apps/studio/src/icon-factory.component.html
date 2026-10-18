@@ -1,0 +1,418 @@
+<div class="factory-intro">
+  <span class="factory-badge"
+    ><cs-icon name="component" /> ORIGINAL CODESHIP VECTORS</span
+  >
+  <p>A small detail. A whole new character.</p>
+</div>
+<div class="factory-workspace">
+  <section class="factory-library" aria-label="Icon browser">
+    <div class="factory-tabs" role="tablist" aria-label="Icon sources">
+      @for (t of ["library", "saved", "vector"]; track t) {
+        <button
+          role="tab"
+          [attr.aria-selected]="tab() === t"
+          [class.active]="tab() === t"
+          (click)="tab.set($any(t))"
+        >
+          {{
+            t === "library"
+              ? "Collection"
+              : t === "saved"
+                ? "My icons"
+                : "Vector studio"
+          }}
+        </button>
+      }
+    </div>
+    @if (tab() === "library") {
+      <div class="search-field">
+        <cs-icon name="search" /><input
+          aria-label="Search icons"
+          placeholder="Find an icon…"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+        />
+      </div>
+      <label class="field"
+        >Category<select
+          aria-label="Icon category"
+          [ngModel]="category()"
+          (ngModelChange)="category.set($event)"
+        >
+          @for (c of categories; track c) {
+            <option>{{ c }}</option>
+          }
+        </select></label
+      >
+      <div class="factory-count">
+        {{ filtered().length }} icons · 24 × 24 grid
+      </div>
+      <div class="factory-icon-grid">
+        @for (icon of filtered(); track icon.id) {
+          <button
+            [class.active]="selected() === icon.id"
+            [attr.aria-label]="'Choose ' + icon.name + ' icon'"
+            [title]="icon.name + ' · ' + icon.category"
+            (click)="choose(icon.id)"
+          >
+            <cs-icon [name]="icon.id" /><span>{{ icon.name }}</span>
+          </button>
+        } @empty {
+          <p class="panel-hint">
+            No matching icons. Try a different name or category.
+          </p>
+        }
+      </div>
+    } @else if (tab() === "saved") {
+      <p class="panel-hint">
+        Your custom vectors and variants travel with this project.
+      </p>
+      @for (icon of saved(); track icon.id) {
+        <div class="saved-icon-row">
+          <button (click)="useSaved(icon.id)">
+            <cs-icon name="component" />{{ icon.name }}</button
+          ><button
+            class="icon-button"
+            [attr.aria-label]="'Remove saved icon ' + icon.name"
+            (click)="removeSaved(icon.id)"
+          >
+            <cs-icon name="trash" />
+          </button>
+        </div>
+      } @empty {
+        <div class="factory-empty">
+          <cs-icon name="heart" />
+          <h3>Make a little collection.</h3>
+          <p>Customize an icon, give it a name, and save your first variant.</p>
+        </div>
+      }
+    } @else {
+      <div class="vector-toolbar">
+        <button
+          class="icon-button"
+          aria-label="Undo vector edit"
+          [disabled]="!canUndo()"
+          (click)="undo()"
+        >
+          <cs-icon name="undo" /></button
+        ><button
+          class="icon-button"
+          aria-label="Redo vector edit"
+          [disabled]="!canRedo()"
+          (click)="redo()"
+        >
+          <cs-icon name="redo" /></button
+        ><span>Vector layers</span>
+      </div>
+      <div class="vector-shapes">
+        @for (
+          s of [
+            ["rect", "square"],
+            ["circle", "circle"],
+            ["line", "minus"],
+            ["path", "pen"],
+            ["g", "layers"],
+          ];
+          track s[0]
+        ) {
+          <button
+            [attr.aria-label]="'Add vector ' + s[0]"
+            [title]="'Add ' + s[0]"
+            (click)="shape(s[0])"
+          >
+            <cs-icon [name]="s[1]" />
+          </button>
+        }
+      </div>
+      <div class="vector-layers">
+        @for (item of layers(); track item.node.id) {
+          <button
+            [style.padding-left.px]="12 + item.depth * 12"
+            [class.active]="selectedLayer() === item.node.id"
+            (click)="selectedLayer.set(item.node.id)"
+          >
+            <cs-icon [name]="item.node.tag === 'g' ? 'layers' : 'pen'" />{{
+              item.node.tag
+            }}
+          </button>
+        }
+      </div>
+      @if (layer(); as current) {
+        <div class="vector-properties">
+          <strong>{{ current.tag }} properties</strong>
+          <p class="panel-hint">
+            SVG coordinates use a 24 × 24 grid. Paths support lines and Bézier
+            curves.
+          </p>
+          @for (a of Object.entries(current.attributes); track a[0]) {
+            @if (!a[0].startsWith("data-") && a[0] !== "transform") {
+              <label class="field"
+                >{{ a[0]
+                }}<input
+                  [attr.aria-label]="'Vector ' + a[0]"
+                  [value]="a[1]"
+                  (change)="editShape(a[0], $any($event.target).value)"
+              /></label>
+            }
+          }
+          <label class="field"
+            >Transform<input
+              aria-label="Vector transform"
+              placeholder="translate(0 0) rotate(0 12 12)"
+              [value]="current.attributes['transform']"
+              (change)="editShape('transform', $any($event.target).value)"
+          /></label>
+          <div class="vector-toolbar">
+            <button (click)="align('x')">Center X</button
+            ><button (click)="align('y')">Center Y</button
+            ><button class="danger" (click)="deleteShape()">
+              Delete layer
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </section>
+  <section class="factory-stage" aria-label="Icon preview and SVG editor">
+    <div class="factory-stage-header">
+      <div>
+        <span class="eyebrow">YOUR CANVAS, IN MINIATURE</span>
+        <h3>{{ draft().name }}</h3>
+      </div>
+      <span class="badge">SVG · editable</span>
+    </div>
+    <div class="factory-preview-grid">
+      <div
+        class="factory-preview dark"
+        (click)="selectShape($event)"
+        [innerHTML]="preview()"
+      ></div>
+      <div
+        class="factory-preview light"
+        (click)="selectShape($event)"
+        [innerHTML]="preview()"
+      ></div>
+    </div>
+    <div class="factory-size-preview">
+      @for (size of [16, 24, 32, 48]; track size) {
+        <div>
+          <span
+            [style.width.px]="size"
+            [style.height.px]="size"
+            [innerHTML]="preview()"
+          ></span
+          ><small>{{ size }}px</small>
+        </div>
+      }
+    </div>
+    <details class="factory-code" [open]="tab() === 'vector'">
+      <summary>
+        <cs-icon name="code" /> SVG source <span>Inspect · edit · import</span>
+      </summary>
+      <label class="sr-only" for="factory-svg-source">SVG source</label
+      ><textarea
+        id="factory-svg-source"
+        aria-label="SVG source"
+        spellcheck="false"
+        [ngModel]="source()"
+        (ngModelChange)="source.set($event)"
+      ></textarea>
+      <div class="vector-toolbar">
+        <label class="quiet-button file-button"
+          ><cs-icon name="upload" />Import SVG<input
+            type="file"
+            accept=".svg,image/svg+xml"
+            aria-label="Import SVG icon"
+            (change)="importFile($event)" /></label
+        ><button class="primary-button" (click)="importSource()">
+          Apply SVG source
+        </button>
+      </div>
+      <p class="panel-hint">
+        Vector shapes and gradients only. Unsafe or unsupported SVG is rejected
+        with an explanation.
+      </p>
+    </details>
+  </section>
+  <section class="factory-controls" aria-label="Customize icon">
+    <span class="eyebrow">MAKE IT YOURS</span>
+    <h3>Every little detail.</h3>
+    <label class="field"
+      >Style<select
+        aria-label="Icon style"
+        [disabled]="selected() === 'custom'"
+        [ngModel]="options().variant"
+        (ngModelChange)="configure('variant', $event)"
+      >
+        @for (
+          v of ["outline", "rounded", "sharp", "duotone", "tinted"];
+          track v
+        ) {
+          <option [value]="v">{{ v }}</option>
+        }
+      </select></label
+    >
+    <div class="factory-control-row">
+      <label class="field"
+        >Primary<input
+          type="color"
+          aria-label="Icon primary color"
+          [disabled]="selected() === 'custom'"
+          [ngModel]="options().color"
+          (ngModelChange)="configure('color', $event)" /></label
+      ><label class="field"
+        >Accent<input
+          type="color"
+          aria-label="Icon accent color"
+          [disabled]="selected() === 'custom'"
+          [ngModel]="options().secondary"
+          (ngModelChange)="configure('secondary', $event)"
+      /></label>
+    </div>
+    <div class="factory-control-row">
+      <label class="field"
+        >Size, px<input
+          type="number"
+          min="12"
+          max="512"
+          aria-label="Icon size"
+          [ngModel]="options().size"
+          (change)="configure('size', +$any($event.target).value)" /></label
+      ><label class="field"
+        >Stroke<input
+          type="number"
+          min="0.25"
+          max="5"
+          step="0.1"
+          aria-label="Icon stroke"
+          [disabled]="selected() === 'custom'"
+          [ngModel]="options().stroke"
+          (change)="configure('stroke', +$any($event.target).value)"
+      /></label>
+    </div>
+    <label class="field"
+      >Opacity · {{ Math.round(options().opacity * 100) }}%<input
+        type="range"
+        min="0"
+        max="1"
+        step="0.05"
+        aria-label="Icon opacity"
+        [ngModel]="options().opacity"
+        (ngModelChange)="configure('opacity', +$event)"
+    /></label>
+    <label class="field"
+      >Rotation · {{ options().rotation }}°<input
+        type="range"
+        min="0"
+        max="360"
+        step="15"
+        aria-label="Icon rotation"
+        [disabled]="selected() === 'custom'"
+        [ngModel]="options().rotation"
+        (ngModelChange)="configure('rotation', +$event)"
+    /></label>
+    <div class="factory-toggle-row">
+      <button
+        [class.active]="options().flipX"
+        [disabled]="selected() === 'custom'"
+        [attr.aria-pressed]="options().flipX"
+        (click)="configure('flipX', !options().flipX)"
+      >
+        <cs-icon name="flip" />Flip X</button
+      ><button
+        [class.active]="options().flipY"
+        [disabled]="selected() === 'custom'"
+        [attr.aria-pressed]="options().flipY"
+        (click)="configure('flipY', !options().flipY)"
+      >
+        Flip Y
+      </button>
+    </div>
+    <label class="factory-check"
+      ><input
+        type="checkbox"
+        [disabled]="selected() === 'custom'"
+        [ngModel]="options().gradient"
+        (ngModelChange)="configure('gradient', $event)"
+      />Two-color gradient</label
+    >
+    @if (selected() === "custom") {
+      <p class="panel-hint">
+        Custom vector: size, opacity and accessibility apply to the whole icon.
+        Edit per-layer colors and transforms in Vector studio.
+      </p>
+    }
+    <label class="field"
+      >Accessible label<input
+        aria-label="Icon accessible label"
+        placeholder="Decorative when empty"
+        [ngModel]="options().label"
+        (change)="configure('label', $any($event.target).value)"
+    /></label>
+    <hr />
+    <label class="field"
+      >Variant name<input
+        aria-label="Icon variant name"
+        [(ngModel)]="variantName" /></label
+    ><button class="quiet-button factory-save" (click)="save()">
+      <cs-icon name="save" />Save to my icons
+    </button>
+  </section>
+</div>
+@if (error()) {
+  <p class="dialog-error" role="alert">{{ error() }}</p>
+}
+@if (notice()) {
+  <p class="factory-notice" role="status">
+    <cs-icon name="checkCircle" />{{ notice() }}
+  </p>
+}
+<div class="factory-footer">
+  <div class="factory-download">
+    <label class="field"
+      >Button icon layout<select
+        aria-label="Button icon layout"
+        [ngModel]="placement()"
+        (ngModelChange)="placement.set($event)"
+      >
+        <option value="before-text">Before text</option>
+        <option value="after-text">After text</option>
+        <option value="above-text">Above text</option>
+        <option value="below-text">Below text</option>
+        <option value="icon-only">Icon only · keep accessible label</option>
+      </select></label
+    >
+    <label class="sr-only" for="icon-export-format">Icon export format</label
+    ><select
+      id="icon-export-format"
+      aria-label="Icon export format"
+      [(ngModel)]="exportTarget"
+    >
+      @for (
+        f of [
+          ["svg", "SVG vector"],
+          ["png", "PNG @3×"],
+          ["html", "Inline HTML"],
+          ["css", "CSS asset"],
+          ["angular", "Angular component"],
+          ["react", "React component"],
+        ];
+        track f[0]
+      ) {
+        <option [value]="f[0]">{{ f[1] }}</option>
+      }</select
+    ><button class="quiet-button" (click)="export()">
+      <cs-icon name="download" />Download icon
+    </button>
+  </div>
+  <div class="factory-download">
+    @if (editTarget) {
+      <button class="quiet-button" (click)="insert(true)">
+        Update selected icon
+      </button>
+    }
+    <button class="primary-button" (click)="insert()">
+      <cs-icon name="plus" />Insert into canvas
+    </button>
+  </div>
+</div>

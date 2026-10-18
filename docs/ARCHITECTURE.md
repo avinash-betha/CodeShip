@@ -1,0 +1,13 @@
+# Architecture
+
+CodeShip is an offline Angular 21 and Electron desktop application with zoneless Signals state. Desktop development requires Node 22.12+. We use a custom DOM canvas to keep the universal document model independent of Angular and framework exporters. No backend or paid service is required. DESKTOP_ARCHITECTURE.md and LOCAL_PROJECT_STORAGE.md document the native boundary; the browser adapter remains available for development.
+
+Modules under `packages/` own pure document operations, AST CSS processing, rendering, layout analysis, registries, persistence, validation, and independent framework exporters. `apps/studio` composes these services and UI components. Only editor state depends on Angular. All edits are transactional and undoable. Imported content never executes in the editor; preview uses a sandboxed iframe and restrictive CSP. Layout analysis runs within an isolated measurement frame from the same document snapshot, at several widths.
+
+Milestones: foundations and canvas; HTML/CSS authoring; measured responsiveness; animation and registries; exports; verification and hardening. Status and evidence are maintained in FEATURE_MATRIX.md and DEVELOPMENT_PROGRESS.md.
+
+The editing iframe grants same-origin DOM measurement and no script permission. Pointer/drag/keyboard/context-menu/inline-text input lives in a transparent parent-owned surface, which works in WebKit without weakening the sandbox. Interactive preview uses an opaque script-enabled frame without same-origin permission and only a CSP-nonced permitted runtime. PROJECT_REPOSITORY selects the native desktop adapter when the bridge is present and IndexedDB for browser development, behind the same framework-independent interface.
+
+The responsive/form baseline is versioned in `component-registry/template-styles.ts`; exact legacy style blocks can be upgraded without replacing user DOM or custom overrides. `icon-factory` owns original geometry, vector construction, strict SVG import, cloning and standalone outputs. Inserted icons reuse ordinary SVG nodes and saved component definitions, keeping schema v1 backward-compatible. Framework renderers adapt case-sensitive SVG tag names and preserve collision-free gradient references.
+
+The Angular `TutorialService` observes editor activity while keeping welcome/progress preferences separate from project data. Its live guidance component and searchable Learning Center compose the existing editor. Dialog lifecycle handling guards against a queued close event clearing a newly opened destination, and backdrop handlers return void so native checkbox/input default actions continue to work.

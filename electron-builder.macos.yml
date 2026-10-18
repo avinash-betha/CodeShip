@@ -1,0 +1,9 @@
+extends: electron-builder.yml
+artifactName: CodeShip-${version}-mac-${arch}.${ext}
+mac:
+  target:
+    - dmg
+    - zip
+  icon: apps/desktop/icon.png
+  category: public.app-category.developer-tools
+  identity: "-"

@@ -1,0 +1,387 @@
+<div class="canvas-toolbar">
+  <div class="canvas-breadcrumb">
+    <cs-icon name="file" /><span>{{ store.page().name }}</span
+    ><cs-icon name="chevron" /><span class="subtle">{{
+      store.mode() === "preview" ? "Live preview" : "Canvas"
+    }}</span>
+  </div>
+  <div class="viewport-tools" role="group" aria-label="Device viewport">
+    <button
+      class="icon-button"
+      aria-label="Compare device previews"
+      title="Compare devices"
+      (click)="compare.emit()"
+    >
+      <cs-icon name="columns" />
+    </button>
+    @for (
+      d of [
+        ["desktop", "Desktop", 1200],
+        ["tablet", "Tablet", 768],
+        ["mobile", "Mobile", 375],
+      ];
+      track d[0]
+    ) {
+      <button
+        class="icon-button"
+        [class.active]="store.viewport() === d[2]"
+        [attr.aria-label]="d[1] + ' viewport'"
+        [title]="d[1]"
+        (click)="setViewport(+$any(d[2]))"
+      >
+        <cs-icon [name]="$any(d[0])" />
+      </button>
+    }
+    <span class="toolbar-divider"></span
+    ><input
+      class="viewport-input"
+      type="number"
+      min="240"
+      max="3840"
+      aria-label="Viewport width"
+      [value]="store.viewport()"
+      (change)="setViewport(+$any($event.target).value)"
+    /><span class="subtle">px</span>
+    <button
+      class="icon-button"
+      aria-label="Rotate viewport"
+      title="Rotate viewport"
+      (click)="rotateViewport()"
+    >
+      <cs-icon name="rotate" />
+    </button>
+  </div>
+  <div class="zoom-tools">
+    <button
+      class="icon-button"
+      aria-label="Zoom out"
+      (click)="store.zoom.set(Math.max(20, store.zoom() - 10))"
+    >
+      <cs-icon name="minus" /></button
+    ><button class="zoom-value" title="Fit canvas" (click)="fit()">
+      {{ store.zoom() }}%<cs-icon name="down" /></button
+    ><button
+      class="icon-button"
+      aria-label="Zoom in"
+      (click)="store.zoom.set(Math.min(150, store.zoom() + 10))"
+    >
+      <cs-icon name="plus" />
+    </button>
+  </div>
+</div>
+<div
+  #stage
+  class="canvas-stage"
+  tabindex="0"
+  role="region"
+  aria-label="Design canvas stage"
+  [class.grid-visible]="grid()"
+  [style.background-color]="background()"
+  (click)="context.set(null)"
+  (scroll)="updateSelection()"
+  (dragover)="$event.preventDefault()"
+  (drop)="$event.preventDefault(); drop($event)"
+>
+  <div
+    class="canvas-artboard"
+    [style.width.px]="(store.viewport() * store.zoom()) / 100"
+    [style.height.px]="(store.viewportHeight() * store.zoom()) / 100"
+  >
+    <div class="artboard-label">
+      <span
+        >{{ store.page().name }}
+        <span class="subtle"
+          >/ {{ store.viewport() }} × {{ store.viewportHeight() }}</span
+        ></span
+      ><span>{{
+        store.mode() === "preview"
+          ? "LIVE PREVIEW"
+          : store.viewport() <= 480
+            ? "MOBILE DESIGN"
+            : store.viewport() <= 800
+              ? "TABLET DESIGN"
+              : "DESKTOP DESIGN"
+      }}</span>
+    </div>
+    @for (source of [document()]; track source) {
+      @if (store.mode() === "edit") {
+        <iframe
+          #frame
+          title="Design canvas"
+          sandbox="allow-same-origin"
+          [srcdoc]="source"
+          [style.width.px]="store.viewport()"
+          [style.height.px]="store.viewportHeight()"
+          [style.transform]="'scale(' + store.zoom() / 100 + ')'"
+          (load)="loaded($event)"
+        ></iframe>
+      } @else {
+        <iframe
+          #frame
+          title="Interactive preview"
+          sandbox="allow-scripts"
+          [srcdoc]="source"
+          [style.width.px]="store.viewport()"
+          [style.height.px]="store.viewportHeight()"
+          [style.transform]="'scale(' + store.zoom() / 100 + ')'"
+        ></iframe>
+      }
+    }
+    @if (store.mode() === "edit") {
+      <div
+        class="canvas-input-surface"
+        [class.pan-active]="pan()"
+        tabindex="0"
+        role="group"
+        aria-label="Canvas editing surface"
+        [draggable]="!pan() && layoutMode() !== 'freeform'"
+        (click)="surfaceClick($event)"
+        (dblclick)="editText($event)"
+        (contextmenu)="surfaceContext($event)"
+        (pointerdown)="surfaceDown($event)"
+        (dragstart)="surfaceDrag($event)"
+        (dragover)="surfaceOver($event)"
+        (dragleave)="clearDrop()"
+        (drop)="surfaceDrop($event)"
+        (wheel)="surfaceWheel($event)"
+      ></div>
+      @if (inlineText(); as text) {
+        <textarea
+          class="inline-text-editor"
+          aria-label="Edit canvas text"
+          [style.left.px]="text.x"
+          [style.top.px]="text.y"
+          [style.width.px]="text.width"
+          [style.height.px]="text.height"
+          [value]="text.value"
+          (input)="updateInline($any($event.target).value)"
+          (blur)="commitText()"
+          (keydown)="inlineKey($event)"
+          (click)="$event.stopPropagation()"
+        ></textarea>
+      }
+    }
+    @if (
+      !store.page().root.children.length &&
+      !store.page().root.text &&
+      store.mode() === "edit"
+    ) {
+      <div class="empty-canvas">
+        <span class="empty-plus"><cs-icon name="plus" /></span>
+        <h2>A little space for your next idea.</h2>
+        <p>Drag an element here or start with a screen template.</p>
+        <button class="quiet-button" (click)="store.insert('section')">
+          Add your first section <cs-icon name="arrow" />
+        </button>
+      </div>
+    }
+  </div>
+  @if (box(); as b) {
+    <div
+      class="selection-box"
+      [style.left.px]="b.x"
+      [style.top.px]="b.y"
+      [style.width.px]="b.width"
+      [style.height.px]="b.height"
+    >
+      <span class="selection-label">{{ b.name }}</span>
+      @for (handle of handles; track handle) {
+        <button
+          [class]="'selection-corner resize-' + handle"
+          [attr.aria-label]="
+            handle === 'se' ? 'Resize selected element' : 'Resize ' + handle
+          "
+          (pointerdown)="resize($event, handle)"
+        ></button>
+      }
+      @if (spacing()) {
+        <div
+          class="canvas-spacing-controls"
+          [style.top.px]="spacingTop(b)"
+          [style.margin-top.px]="0"
+        >
+          @for (property of ["padding", "margin", "gap"]; track property) {
+            <button
+              [attr.aria-label]="'Drag ' + property"
+              (pointerdown)="spaceDrag($event, property)"
+              [title]="'Drag horizontally to adjust ' + property"
+            >
+              {{ property }}
+              {{
+                spacingDraft()?.property === property
+                  ? spacingDraft()!.value
+                  : store.style()[property] || "0"
+              }}
+            </button>
+          }
+        </div>
+      }
+      <span class="selection-size"
+        >{{ Math.round((b.width * 100) / store.zoom()) }} ×
+        {{ Math.round((b.height * 100) / store.zoom()) }}</span
+      >
+    </div>
+  }
+  @if (guide() !== null) {
+    <div class="alignment-guide" [style.left.px]="guide()"></div>
+  }
+  @if (horizontalGuide() !== null) {
+    <div
+      class="alignment-guide-horizontal"
+      [style.top.px]="horizontalGuide()"
+    ></div>
+  }
+  @if (dropIndicator(); as d) {
+    <div
+      class="drop-insertion"
+      [style.left.px]="d.x"
+      [style.top.px]="d.y"
+      [style.width.px]="d.width"
+    ></div>
+  }
+</div>
+@if (store.mode() === "edit") {
+  <div class="floating-tools">
+    <button
+      class="icon-button"
+      aria-label="Duplicate selected element"
+      title="Duplicate"
+      [disabled]="!store.node()"
+      (click)="store.duplicate()"
+    >
+      <cs-icon name="copy" />
+    </button>
+    <button
+      class="icon-button"
+      aria-label="Add icon to selection"
+      title="Add icon"
+      [disabled]="!store.node()"
+      (click)="icon.emit()"
+    >
+      <cs-icon name="component" />
+    </button>
+    <button
+      class="icon-button"
+      aria-label="Align selection center"
+      title="Align center"
+      [disabled]="!store.node()"
+      (click)="align('center')"
+    >
+      <cs-icon name="columns" />
+    </button>
+    <button
+      class="icon-button"
+      aria-label="Delete selected element"
+      title="Delete"
+      [disabled]="!store.node()"
+      (click)="store.remove()"
+    >
+      <cs-icon name="trash" />
+    </button>
+    <select
+      aria-label="Container layout mode"
+      [disabled]="!store.node()"
+      [value]="layoutMode()"
+      (change)="layout($any($event.target).value)"
+    >
+      <option value="flow">Flow</option>
+      <option value="flex">Flex</option>
+      <option value="grid">Grid</option>
+      <option value="freeform">Freeform</option>
+    </select>
+    <button
+      class="icon-button"
+      aria-label="Lock aspect ratio"
+      title="Lock aspect ratio (or hold Shift)"
+      [class.active]="aspect()"
+      [attr.aria-pressed]="aspect()"
+      (click)="aspect.set(!aspect())"
+    >
+      <cs-icon name="lock" />
+    </button>
+    <button
+      class="icon-button"
+      aria-label="Visual spacing controls"
+      title="Drag padding, margin and gap"
+      [class.active]="spacing()"
+      (click)="spacing.set(!spacing())"
+    >
+      <cs-icon name="columns" />
+    </button>
+    <button
+      class="icon-button"
+      [class.active]="!pan()"
+      aria-label="Selection tool"
+      title="Select (V)"
+      (click)="setPan(false)"
+    >
+      <cs-icon name="pointer" /></button
+    ><button
+      class="icon-button"
+      [class.active]="pan()"
+      aria-label="Pan tool"
+      title="Pan (H)"
+      (click)="setPan(true)"
+    >
+      <cs-icon name="hand" /></button
+    ><span class="toolbar-divider"></span
+    ><button
+      class="icon-button"
+      [class.active]="grid()"
+      aria-label="Toggle snap grid"
+      title="Snap to 8px grid"
+      (click)="grid.set(!grid())"
+    >
+      <cs-icon name="grid" /></button
+    ><label class="canvas-color" title="Canvas background"
+      ><input
+        type="color"
+        aria-label="Canvas background color"
+        [value]="background()"
+        (input)="background.set($any($event.target).value)"
+    /></label>
+  </div>
+}
+<div class="canvas-status">
+  <div class="status-breadcrumb">
+    @for (b of breadcrumbs(); track b.id; let last = $last) {
+      <button (click)="store.select(b.id)">{{ b.name }}</button>
+      @if (!last) {
+        <cs-icon name="chevron" />
+      }
+    }
+  </div>
+  <span
+    >{{ count() }} elements <span class="dot-divider">·</span>
+    {{ store.selected().length || "No" }} selected</span
+  >
+</div>
+@if (context(); as c) {
+  <div
+    class="context-menu"
+    role="menu"
+    [style.left.px]="c.x"
+    [style.top.px]="c.y"
+    (click)="context.set(null)"
+  >
+    <button role="menuitem" (click)="store.copy()">
+      Copy <kbd>Ctrl C</kbd></button
+    ><button role="menuitem" (click)="store.paste()">
+      Paste <kbd>Ctrl V</kbd></button
+    ><button role="menuitem" (click)="store.duplicate()">
+      Duplicate <kbd>Ctrl D</kbd></button
+    ><button role="menuitem" (click)="store.group()">
+      Group selection <kbd>Ctrl G</kbd></button
+    ><button role="menuitem" (click)="store.ungroup()">
+      Ungroup <kbd>Ctrl Shift G</kbd>
+    </button>
+    @for (a of ["left", "center", "right", "top", "bottom"]; track a) {
+      <button role="menuitem" (click)="align(a)">Align {{ a }}</button>
+    }
+    <button role="menuitem" (click)="store.reorder(-1)">Move before</button
+    ><button role="menuitem" (click)="store.reorder(1)">Move after</button
+    ><button role="menuitem" class="danger" (click)="store.remove()">
+      Delete <kbd>Del</kbd>
+    </button>
+  </div>
+}

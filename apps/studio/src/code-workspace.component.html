@@ -1,0 +1,112 @@
+<div class="code-toolbar">
+  <div class="code-tabs" role="tablist" aria-label="Source workspace">
+    @for (t of tabs; track t[0]) {
+      <button
+        role="tab"
+        [attr.aria-selected]="tab() === t[0] && !collapsed()"
+        [class.active]="tab() === t[0] && !collapsed()"
+        (click)="select(t[0])"
+      >
+        @if (t[0] === "html") {
+          <cs-icon name="code" />
+        }
+        @if (t[0] === "problems") {
+          <span
+            class="diagnostic-dot"
+            [class.has-issues]="store.diagnostics().length"
+          ></span>
+        }
+        {{ t[1] }}
+        @if (t[0] === "problems" && store.diagnostics().length) {
+          <span class="count">{{ store.diagnostics().length }}</span>
+        }
+      </button>
+    }
+  </div>
+  <div class="code-actions">
+    @if (!collapsed() && tab() !== "problems") {
+      @if (["html", "css"].includes(tab())) {
+        <button
+          class="quiet-button compact"
+          aria-label="Format source"
+          (click)="format()"
+        >
+          Format
+        </button>
+      }
+      <button
+        class="icon-button small"
+        aria-label="Copy source code"
+        (click)="copy()"
+      >
+        <cs-icon name="copy" />
+      </button>
+    }
+    <button
+      class="icon-button small"
+      [attr.aria-label]="
+        maximized() ? 'Restore code workspace' : 'Maximize code workspace'
+      "
+      (click)="maximize.emit()"
+    >
+      <cs-icon [name]="maximized() ? 'shrink' : 'expand'" />
+    </button>
+    @if (dirty()) {
+      <button class="quiet-button compact" (click)="discard()">Discard</button
+      ><button class="primary-button compact" (click)="apply()">
+        Apply changes
+      </button>
+    }
+    <button
+      class="icon-button small"
+      aria-label="Export code"
+      (click)="export.emit()"
+    >
+      <cs-icon name="download" /></button
+    ><button
+      class="icon-button small"
+      [attr.aria-label]="
+        collapsed() ? 'Expand code workspace' : 'Collapse code workspace'
+      "
+      (click)="toggle.emit()"
+    >
+      <cs-icon [name]="collapsed() ? 'plus' : 'minus'" />
+    </button>
+  </div>
+</div>
+<div class="code-content" [hidden]="collapsed()">
+  @if (error()) {
+    <div class="code-error" role="alert">{{ error() }}</div>
+  }
+  @if (tab() === "problems") {
+    <div class="diagnostics-list">
+      @for (d of store.diagnostics(); track $index) {
+        <button (click)="store.select(d.nodeId ?? '')">
+          <span [class]="'severity ' + d.severity">{{ d.severity }}</span
+          >{{ d.message }}<cs-icon name="arrow" />
+        </button>
+      }
+      @if (!store.diagnostics().length) {
+        <p>
+          <cs-icon name="check" />No document diagnostics. Review exported
+          behavior and accessibility before shipping.
+        </p>
+      }
+    </div>
+  }
+  <div
+    #editorHost
+    class="monaco-host"
+    [hidden]="tab() === 'problems' || fallback()"
+  ></div>
+  @if (fallback() && tab() !== "problems") {
+    <textarea
+      class="code-fallback"
+      aria-label="Source code editor"
+      [readOnly]="!['html', 'css'].includes(tab())"
+      [ngModel]="text()"
+      (ngModelChange)="text.set($event); dirty.set(true)"
+      spellcheck="false"
+    ></textarea>
+  }
+</div>

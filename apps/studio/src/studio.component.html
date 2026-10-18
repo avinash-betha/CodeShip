@@ -1,0 +1,952 @@
+<div
+  class="studio-shell"
+  [class.canvas-focused]="view.mode() === 'canvas'"
+  [class.code-focused]="view.mode() === 'code'"
+  [style.--left-width]="(leftOpen() ? leftWidth() : 0) + 'px'"
+  [style.--right-width]="(rightOpen() ? rightWidth() : 0) + 'px'"
+>
+  <header class="topbar">
+    <h1 class="sr-only">CodeShip visual development studio</h1>
+    <button
+      class="brand"
+      aria-label="CodeShip. Open projects"
+      (click)="show('projects')"
+    >
+      <span class="brand-mark app-brand-mark"
+        ><img src="brand/codeship-64.png" width="32" height="32" alt="" /></span
+      ><span>codeship<span class="brand-period">.</span></span></button
+    ><span class="top-divider"></span>
+    <button class="project-switch" (click)="show('projects')">
+      <span class="project-avatar">F</span
+      ><span>{{ store.project().name }}</span
+      ><cs-icon name="down" />
+    </button>
+    <span class="project-status" [class.error]="store.saved() === 'error'"
+      ><span class="status-dot"></span
+      >{{
+        store.saved() === "saved"
+          ? "All changes saved"
+          : store.saved() === "saving"
+            ? "Saving…"
+            : store.saved() === "error"
+              ? "Save failed"
+              : "Unsaved changes"
+      }}</span
+    >
+    <button
+      class="icon-button"
+      aria-label="Application settings"
+      title="Application settings"
+      (click)="show('settings')"
+    >
+      <cs-icon name="settings" />
+    </button>
+    <div class="topbar-spacer"></div>
+    <button
+      class="icon-button"
+      [attr.aria-label]="
+        view.fullScreen()
+          ? 'Exit application full screen'
+          : 'Enter application full screen'
+      "
+      title="Application full screen · F11"
+      (click)="view.toggleFullScreen()"
+    >
+      <cs-icon [name]="view.fullScreen() ? 'shrink' : 'expand'" />
+    </button>
+    <button
+      class="quiet-button docs-launch"
+      aria-label="Docs"
+      (click)="show('docs')"
+    >
+      <cs-icon name="file" />Docs
+    </button>
+    <button class="quiet-button import-button" (click)="show('import')">
+      <cs-icon name="upload" />Import</button
+    ><span class="top-divider"></span>
+    <button
+      class="quiet-button preview-button"
+      [class.active]="store.mode() === 'preview'"
+      (click)="store.mode.set(store.mode() === 'edit' ? 'preview' : 'edit')"
+    >
+      <cs-icon [name]="store.mode() === 'edit' ? 'play' : 'pointer'" />{{
+        store.mode() === "edit" ? "Preview" : "Edit design"
+      }}</button
+    ><button
+      class="icon-button"
+      aria-label="Preview full screen"
+      title="Preview full screen"
+      (click)="setView('preview')"
+    >
+      <cs-icon name="expand" /></button
+    ><button class="primary-button export-button" (click)="show('export')">
+      <cs-icon name="code" />Export code<cs-icon name="external" /></button
+    ><button
+      class="user-avatar"
+      aria-label="Local workspace and projects"
+      title="Local workspace"
+      (click)="show('projects')"
+    >
+      B
+    </button>
+  </header>
+  <div class="workspace-bar" role="region" aria-label="Workspace controls">
+    <div class="workspace-left">
+      <button
+        class="icon-button"
+        aria-label="Toggle library panel"
+        [class.active]="leftOpen()"
+        (click)="leftOpen.set(!leftOpen())"
+      >
+        <cs-icon name="sidebar" /></button
+      ><span class="toolbar-divider"></span
+      ><button
+        class="icon-button learning-launch"
+        aria-label="Learning Center"
+        title="Learning Center and guided tutorial"
+        (click)="show('learn')"
+      >
+        <cs-icon name="book" /></button
+      ><button
+        class="workspace-tab"
+        [class.active]="rightMode() === 'properties'"
+        (click)="rightMode.set('properties'); store.mode.set('edit')"
+      >
+        <cs-icon name="layout" />Design</button
+      ><button
+        class="workspace-tab"
+        [class.active]="rightMode() === 'responsive'"
+        (click)="analyze()"
+      >
+        <cs-icon name="spark" />Responsive
+      </button>
+      <button class="workspace-tab factory-launch" (click)="show('icons')">
+        <cs-icon name="component" />Icon Factory
+      </button>
+    </div>
+    <div class="page-switcher">
+      <cs-icon name="file" /><select
+        aria-label="Active page"
+        [ngModel]="store.page().id"
+        (ngModelChange)="store.switchPage($event)"
+      >
+        @for (page of store.project().pages; track page.id) {
+          <option [value]="page.id">{{ page.name }}</option>
+        }</select
+      ><button
+        class="icon-button small"
+        aria-label="Add page"
+        (click)="addPage()"
+      >
+        <cs-icon name="plus" />
+      </button>
+    </div>
+    <div class="workspace-right">
+      <button
+        class="quiet-button"
+        aria-label="Focus canvas"
+        title="Focus canvas · Ctrl Shift F"
+        (click)="setView('canvas')"
+      >
+        <cs-icon name="expand" />Focus
+      </button>
+      <button
+        class="icon-button"
+        [disabled]="!store.canUndo()"
+        title="Undo (Ctrl Z)"
+        aria-label="Undo"
+        (click)="store.undo()"
+      >
+        <cs-icon name="undo" /></button
+      ><button
+        class="icon-button"
+        [disabled]="!store.canRedo()"
+        title="Redo (Ctrl Shift Z)"
+        aria-label="Redo"
+        (click)="store.redo()"
+      >
+        <cs-icon name="redo" /></button
+      ><span class="toolbar-divider"></span
+      ><button
+        class="icon-button"
+        aria-label="Keyboard shortcuts and help"
+        (click)="show('help')"
+      >
+        <cs-icon name="help" /></button
+      ><button
+        class="icon-button"
+        aria-label="Toggle inspector panel"
+        [class.active]="rightOpen()"
+        (click)="rightOpen.set(!rightOpen())"
+      >
+        <cs-icon name="panel" />
+      </button>
+    </div>
+  </div>
+  @if (view.mode() === "canvas") {
+    <div
+      class="focus-toolbar"
+      role="region"
+      aria-label="Focused canvas controls"
+    >
+      <strong><cs-icon name="layout" />Canvas focus</strong>
+      <button
+        class="quiet-button"
+        [disabled]="!store.canUndo()"
+        (click)="store.undo()"
+      >
+        <cs-icon name="undo" />Undo
+      </button>
+      <button
+        class="quiet-button"
+        [disabled]="!store.canRedo()"
+        (click)="store.redo()"
+      >
+        <cs-icon name="redo" />Redo
+      </button>
+      <button class="quiet-button" (click)="setView('preview')">
+        <cs-icon name="play" />Preview full screen
+      </button>
+      <span class="topbar-spacer"></span>
+      <button
+        class="quiet-button"
+        [attr.aria-label]="
+          view.fullScreen()
+            ? 'Exit application full screen'
+            : 'Enter application full screen'
+        "
+        (click)="view.toggleFullScreen()"
+      >
+        <cs-icon name="expand" />F11
+      </button>
+      <button class="primary-button" (click)="view.restore()">
+        Exit canvas focus <kbd>Esc</kbd>
+      </button>
+    </div>
+  }
+  <div class="editor-workspace">
+    <aside
+      class="left-panel"
+      [hidden]="!leftOpen()"
+      aria-label="Element library and layers"
+    >
+      <cs-library />
+      <div class="panel-brand-footer">
+        <span class="local-indicator"></span>LOCAL WORKSPACE<cs-icon
+          name="lock"
+        />
+      </div>
+    </aside>
+    <div
+      class="panel-resizer left-resizer"
+      [hidden]="!leftOpen()"
+      (pointerdown)="resize($event, 'left')"
+      aria-hidden="true"
+    ></div>
+    <main class="center-panel" aria-label="Visual editor">
+      <cs-canvas (compare)="show('devices')" (icon)="show('icons')" />
+      <div
+        class="code-panel"
+        [style.height.px]="codeOpen() ? codeHeight() : 40"
+      >
+        <div
+          class="code-resizer"
+          [hidden]="!codeOpen()"
+          (pointerdown)="resize($event, 'code')"
+          aria-hidden="true"
+        ></div>
+        <cs-code-workspace
+          [collapsed]="!codeOpen() && view.mode() !== 'code'"
+          [maximized]="view.mode() === 'code'"
+          (maximize)="setView(view.mode() === 'code' ? 'editor' : 'code')"
+          (toggle)="codeOpen.set(!codeOpen())"
+          (export)="show('export')"
+        />
+      </div>
+    </main>
+    <div
+      class="panel-resizer right-resizer"
+      [hidden]="!rightOpen()"
+      (pointerdown)="resize($event, 'right')"
+      aria-hidden="true"
+    ></div>
+    <aside
+      class="right-panel"
+      [hidden]="!rightOpen()"
+      aria-label="Properties inspector"
+    >
+      <div class="inspector-mode-bar">
+        <button
+          [class.active]="rightMode() === 'properties'"
+          (click)="rightMode.set('properties')"
+        >
+          Properties</button
+        ><button
+          [class.active]="rightMode() === 'responsive'"
+          (click)="rightMode.set('responsive')"
+        >
+          <cs-icon name="spark" />Responsive
+        </button>
+      </div>
+      <cs-inspector [mode]="rightMode()" (editIcon)="show('icons')" /><button
+        class="analyze-button"
+        [disabled]="store.busy()"
+        (click)="analyze()"
+      >
+        <cs-icon name="spark" /><span>{{
+          store.busy() ? "Analyzing layout…" : "Analyze responsiveness"
+        }}</span
+        ><cs-icon name="arrow" />
+      </button>
+    </aside>
+  </div>
+  <footer class="app-footer">
+    <span class="version-tag">BETA 0.2</span
+    ><span>A little less friction. A lot more possibility.</span>
+    <div class="topbar-spacer"></div>
+    <span class="connection-dot"></span><span>Local-first</span
+    ><span class="dot-divider">·</span
+    ><button (click)="show('help')">Shortcuts <kbd>?</kbd></button>
+  </footer>
+</div>
+@if (view.mode() === "preview") {
+  <cs-preview-studio />
+}
+@if (view.error()) {
+  <div class="view-error" role="alert">
+    {{ view.error() }}<button (click)="view.error.set('')">Dismiss</button>
+  </div>
+}
+<cs-tutorial />
+@if (store.message()) {
+  <div class="toast" role="status">
+    <cs-icon name="spark" /><span>{{ store.message() }}</span
+    ><button
+      class="icon-button small"
+      aria-label="Dismiss notification"
+      (click)="store.message.set('')"
+    >
+      <cs-icon name="close" />
+    </button>
+  </div>
+}
+<dialog
+  #dialog
+  class="studio-dialog"
+  [class.export-dialog]="modal() === 'export'"
+  [class.export-expanded]="modal() === 'export' && exportExpanded()"
+  [class.compare-dialog]="modal() === 'devices'"
+  [class.factory-dialog]="modal() === 'icons'"
+  [class.welcome-dialog]="modal() === 'welcome'"
+  [class.learning-dialog]="modal() === 'learn'"
+  [class.docs-dialog]="modal() === 'docs'"
+  [class.docs-expanded]="modal() === 'docs' && docsExpanded()"
+  (cancel)="dialogCancel($event)"
+  (close)="dialogClosed()"
+  (click)="dialogClick($event)"
+  aria-labelledby="dialog-title"
+>
+  <div class="dialog-header" [class.sr-only]="modal() === 'docs'">
+    <div>
+      <span class="eyebrow">YOUR IDEAS, READY TO GO</span>
+      <h2 id="dialog-title">
+        {{
+          modal() === "projects"
+            ? "Your workspace"
+            : modal() === "import"
+              ? "Bring your code along."
+              : modal() === "export"
+                ? "Built here. Ship anywhere."
+                : modal() === "devices"
+                  ? "One design. Every screen."
+                  : modal() === "icons"
+                    ? "Icon Factory."
+                    : modal() === "welcome"
+                      ? "Your next idea starts here."
+                      : modal() === "learn"
+                        ? "A little guidance. A lot of possibility."
+                        : modal() === "docs"
+                          ? "Documentation Center"
+                          : modal() === "settings"
+                            ? "Make CodeShip yours."
+                            : "Find your flow."
+        }}
+      </h2>
+    </div>
+    @if (modal() !== "docs") {
+      <button class="icon-button" aria-label="Close dialog" (click)="close()">
+        <cs-icon name="close" />
+      </button>
+    }
+  </div>
+  @if (modalError()) {
+    <div class="dialog-error" role="alert">{{ modalError() }}</div>
+  }
+  @if (modal() === "welcome") {
+    <div class="welcome-hero">
+      <div class="welcome-art" aria-hidden="true">
+        <span><cs-icon name="layout" /></span
+        ><span><cs-icon name="component" /></span
+        ><span><cs-icon name="code" /></span><i></i><i></i><i></i>
+      </div>
+      <span class="welcome-pill"
+        ><span class="status-dot"></span> YOUR LOCAL CREATIVE WORKSPACE</span
+      >
+      <h3>Design it. Make it yours. Ship it.</h3>
+      <p>
+        Build real interfaces with editable layouts, thoughtful components, and
+        your own icons. Start with a little guidance, or jump straight in.
+      </p>
+      <button
+        class="primary-button welcome-tour"
+        (click)="welcomeAction('tutorial')"
+      >
+        <cs-icon name="rocket" />Take the guided tour<cs-icon
+          name="arrow"
+        /></button
+      ><small>Learn by building · skip or resume anytime</small>
+    </div>
+    <div class="welcome-options">
+      @for (
+        item of [
+          ["blank", "plus", "Empty canvas", "A fresh place for your idea."],
+          [
+            "docs",
+            "book",
+            "Open documentation",
+            "Guides and examples, available offline.",
+          ],
+          [
+            "walkthrough",
+            "play",
+            "Visual walkthrough",
+            "See the design-to-code workflow.",
+          ],
+          [
+            "templates",
+            "layout",
+            "Screen templates",
+            "Start with a complete layout.",
+          ],
+          [
+            "components",
+            "layers",
+            "Reusable components",
+            "Build one piece at a time.",
+          ],
+          [
+            "import",
+            "upload",
+            "Import HTML & CSS",
+            "Bring your existing work.",
+          ],
+          [
+            "icons",
+            "component",
+            "Explore Icon Factory",
+            "Make every detail your own.",
+          ],
+        ];
+        track item[0]
+      ) {
+        <button (click)="welcomeAction(item[0])">
+          <span class="welcome-option-icon"><cs-icon [name]="item[1]" /></span
+          ><span
+            ><strong>{{ item[2] }}</strong
+            ><small>{{ item[3] }}</small></span
+          ><cs-icon name="arrow" />
+        </button>
+      }
+    </div>
+    <div class="welcome-footer">
+      <span><cs-icon name="lock" />Your projects stay on this computer.</span
+      ><button (click)="close()">
+        Skip welcome and explore<cs-icon name="arrow" />
+      </button>
+    </div>
+  } @else if (modal() === "learn") {
+    <div class="learning-intro">
+      <div>
+        <span class="factory-badge"
+          ><cs-icon name="book" /> LEARNING CENTER</span
+        >
+        <p>Practical guidance, right where you build.</p>
+      </div>
+      <button class="primary-button" (click)="startTutorial()">
+        <cs-icon name="play" />{{
+          tutorial.state().index > 0 && tutorial.step()
+            ? "Resume guided tour"
+            : "Start guided tour"
+        }}
+      </button>
+    </div>
+    <div class="learning-progress">
+      <span>{{ tutorial.percent() }}% of the first-build tour completed</span
+      ><button (click)="startTutorial(true)">Restart tour</button>
+    </div>
+    <div class="search-field learning-search">
+      <cs-icon name="search" /><input
+        aria-label="Search Learning Center"
+        placeholder="Find a topic, tool, or technique…"
+        [ngModel]="learningSearch()"
+        (ngModelChange)="learningSearch.set($event)"
+      />
+    </div>
+    <div class="learning-grid">
+      @for (lesson of lessons(); track lesson.title) {
+        <article>
+          <span class="learning-icon"><cs-icon [name]="lesson.icon" /></span>
+          <h3>{{ lesson.title }}</h3>
+          <p>{{ lesson.text }}</p>
+          <div class="learning-example">{{ lesson.example }}</div>
+          <button (click)="lessonAction(lesson.action)">
+            Try it in the editor<cs-icon name="arrow" />
+          </button>
+        </article>
+      } @empty {
+        <p>No matching lessons. Try “forms”, “icons”, or “responsive”.</p>
+      }
+    </div>
+  } @else if (modal() === "docs") {
+    <cs-documentation
+      (action)="docAction($event)"
+      (visit)="docVisit($event)"
+      (exit)="close()"
+      (expandChange)="docsExpanded.set($event)"
+    />
+  } @else if (modal() === "settings") {
+    <p class="dialog-description">
+      Your editor preferences and permanent local workspace. No account,
+      expiration, or cloud service.
+    </p>
+    <div class="settings-grid">
+      <label class="field"
+        >Appearance<select
+          aria-label="Application theme"
+          [ngModel]="preferences.settings().theme"
+          (ngModelChange)="preferences.theme($event)"
+        >
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="system">Follow system</option>
+        </select></label
+      >
+      <div class="settings-storage">
+        <cs-icon name="folder" /><strong>Default project folder</strong
+        ><code>{{ preferences.settings().storageFolder }}</code>
+        @if (native) {
+          <button class="quiet-button" (click)="preferences.chooseFolder()">
+            Choose another folder
+          </button>
+        } @else {
+          <p class="panel-hint">
+            The desktop application stores native project files. This browser
+            development version retains IndexedDB and portable JSON.
+          </p>
+        }
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="quiet-button" (click)="show('learn')">
+        <cs-icon name="book" />Offline learning</button
+      ><button class="quiet-button" (click)="show('docs')">
+        Documentation Center</button
+      ><button class="primary-button" (click)="close()">Back to studio</button>
+    </div>
+  } @else if (modal() === "icons") {
+    <cs-icon-factory />
+  } @else if (modal() === "projects") {
+    @if (native) {
+      <div class="native-project-tools">
+        <button class="quiet-button" (click)="openNative()">
+          <cs-icon name="folder" />Open project file</button
+        ><button class="quiet-button" (click)="saveAsNative()">Save as…</button
+        ><button class="quiet-button" (click)="nativeBackup()">
+          Create backup</button
+        ><button class="quiet-button" (click)="nativeRecover()">
+          Recover backup</button
+        ><button
+          class="quiet-button"
+          (click)="native.showProjectFolder(store.project().id)"
+        >
+          Show folder
+        </button>
+      </div>
+    }
+    <div class="project-settings">
+      <label class="field"
+        >Current project<input
+          aria-label="Rename current project"
+          [ngModel]="store.project().name"
+          (change)="store.rename($any($event.target).value)" /></label
+      ><button
+        class="quiet-button"
+        (click)="store.persist(); tutorial.record('save')"
+      >
+        <cs-icon name="save" />Save now</button
+      ><button class="quiet-button" (click)="exportJson()">
+        <cs-icon name="download" />Project JSON
+      </button>
+    </div>
+    <div class="new-project-row">
+      <input
+        [(ngModel)]="projectName"
+        aria-label="New project name"
+        placeholder="A name for your next idea"
+        (keydown.enter)="create()"
+      /><button class="primary-button" (click)="create()">
+        <cs-icon name="plus" />New project
+      </button>
+    </div>
+    <div class="project-filter-row">
+      <div class="search-field">
+        <cs-icon name="search" /><input
+          aria-label="Search projects"
+          placeholder="Find a project…"
+          [ngModel]="projectSearch()"
+          (ngModelChange)="projectSearch.set($event)"
+        />
+      </div>
+      <label class="sr-only" for="project-sort">Sort projects</label
+      ><select
+        id="project-sort"
+        [ngModel]="projectSort()"
+        (ngModelChange)="projectSort.set($event)"
+      >
+        <option value="updated">Recently edited</option>
+        <option value="name">Name A to Z</option>
+      </select>
+    </div>
+    <div class="project-list">
+      @for (p of filteredProjects(); track p.id) {
+        <div class="project-list-row">
+          <span class="project-list-icon"><cs-icon name="folder" /></span
+          ><button class="project-list-name" (click)="open(p)">
+            <strong>{{ p.name }}</strong
+            ><small
+              >{{ p.updatedAt | date: "medium" }} · {{ p.pages.length }} page{{
+                p.pages.length === 1 ? "" : "s"
+              }}</small
+            >
+          </button>
+          @if (p.id === store.project().id) {
+            <span class="badge">Open</span>
+          }
+          <button
+            class="icon-button"
+            [attr.aria-label]="'Duplicate project ' + p.name"
+            (click)="duplicate(p)"
+          >
+            <cs-icon name="copy" /></button
+          ><button
+            class="icon-button danger"
+            [attr.aria-label]="'Delete project ' + p.name"
+            (click)="remove(p)"
+          >
+            <cs-icon name="trash" />
+          </button>
+        </div>
+      }
+    </div>
+    <p class="dialog-note">
+      <cs-icon name="lock" />{{
+        native
+          ? "Projects stay in your chosen folder until you delete them. Backups remain local."
+          : "Projects stay in this browser. Export project JSON for a portable backup."
+      }}
+    </p>
+  } @else if (modal() === "import") {
+    <p class="dialog-description">
+      Start from existing HTML and CSS, or reopen a CodeShip project. Imported
+      markup becomes editable elements; unsafe executable content is removed
+      with a report.
+    </p>
+    <label class="file-drop"
+      ><cs-icon name="upload" /><span
+        >Choose .html, .css, or .codeship.json</span
+      ><input
+        type="file"
+        accept=".html,.htm,.css,.json"
+        (change)="importFile($event)"
+        aria-label="Import source file or project"
+    /></label>
+    <div class="import-editors">
+      <label class="field"
+        >HTML<textarea
+          [(ngModel)]="importHtmlText"
+          aria-label="Import HTML source"
+          placeholder="<main>Something great starts here.</main>"
+          spellcheck="false"
+        ></textarea></label
+      ><label class="field"
+        >CSS<textarea
+          [(ngModel)]="importCssText"
+          aria-label="Import CSS source"
+          placeholder="main { padding: 48px; }"
+          spellcheck="false"
+        ></textarea>
+      </label>
+    </div>
+    <p class="dialog-note">
+      CSS-only imports apply to the current page. Provide the original HTML for
+      accurate responsive analysis. Imported JavaScript does not run.
+    </p>
+    <div class="dialog-actions">
+      <button class="quiet-button" (click)="close()">Cancel</button
+      ><button
+        class="primary-button"
+        [disabled]="!importHtmlText.trim() && !importCssText.trim()"
+        (click)="importSource()"
+      >
+        Import into page<cs-icon name="arrow" />
+      </button>
+    </div>
+  } @else if (modal() === "export") {
+    <p class="dialog-description">
+      Your design, as a real independent project. Formatted source, responsive
+      styles, assets, and supported interactions. No editor runtime required.
+    </p>
+    <div class="export-options">
+      <label class="field"
+        >Export scope<select
+          aria-label="Export scope"
+          [ngModel]="exportOptions().scope"
+          (ngModelChange)="exportOption('scope', $event)"
+        >
+          @for (s of exportScopes; track s.value) {
+            <option [value]="s.value">{{ s.label }}</option>
+          }</select
+        ><small>Choose what leaves this project.</small></label
+      >
+      <label class="field"
+        >Output format<select
+          aria-label="Export output format"
+          [ngModel]="exportOptions().mode"
+          (ngModelChange)="exportOption('mode', $event)"
+        >
+          @for (s of exportModes; track s.value) {
+            <option [value]="s.value">{{ s.label }}</option>
+          }</select
+        ><small>Match the files to your workflow.</small></label
+      >
+      @if (exportOptions().mode === "component") {
+        <label class="field"
+          >Component name<input
+            aria-label="Export component name"
+            [ngModel]="exportOptions().name"
+            (change)="exportOption('name', $any($event.target).value)"
+          /><small>Used for component files and symbols.</small></label
+        >
+      }
+    </div>
+    @if (exportOptions().scope === "screens") {
+      <div class="export-pages">
+        @for (p of store.project().pages; track p.id) {
+          <label
+            ><input
+              type="checkbox"
+              [checked]="exportOptions().pageIds.includes(p.id)"
+              (change)="exportPage(p.id, $any($event.target).checked)"
+            />{{ p.name }}</label
+          >
+        }
+      </div>
+    }
+    @if (exportReport(); as r) {
+      <div class="dependency-report" aria-label="Export contents">
+        @for (
+          metric of [
+            { count: r.project.pages.length, label: "screen", icon: "layout" },
+            { count: r.dependencies.assets, label: "asset", icon: "image" },
+            {
+              count: r.dependencies.tokens.length,
+              label: "token",
+              icon: "brush",
+            },
+            {
+              count: r.dependencies.animations.length,
+              label: "animation",
+              icon: "animation",
+            },
+          ];
+          track metric.label
+        ) {
+          <span [class.metric-empty]="metric.count === 0"
+            ><cs-icon [name]="metric.icon" /><strong>{{ metric.count }}</strong
+            >{{ metric.label }}{{ metric.count === 1 ? "" : "s" }}</span
+          >
+        }
+      </div>
+      @for (w of r.warnings; track w) {
+        <p class="export-warning">{{ w }}</p>
+      }
+    }
+    <div class="export-targets" role="group" aria-label="Export framework">
+      @for (
+        t of [
+          ["html", "HTML / CSS", "Just open and go."],
+          ["angular", "Angular", "Standalone components."],
+          ["nextjs", "Next.js", "App Router. TypeScript."],
+        ];
+        track t[0]
+      ) {
+        <button
+          [class.active]="target() === t[0]"
+          [attr.aria-pressed]="target() === t[0]"
+          [disabled]="exporting()"
+          (click)="changeTarget($any(t[0]))"
+        >
+          <cs-icon
+            [name]="
+              t[0] === 'html' ? 'code' : t[0] === 'angular' ? 'box' : 'external'
+            "
+          /><strong>{{ t[1] }}</strong
+          ><small>{{ t[2] }}</small
+          ><span class="radio-indicator"></span>
+        </button>
+      }
+    </div>
+    @if (exporting()) {
+      <div class="export-loading">
+        <span class="spinner"></span>Formatting your project…
+      </div>
+    } @else if (Object.keys(exportFiles()).length) {
+      <div class="export-preview-toolbar">
+        <span><cs-icon name="code" />{{ currentFile() }}</span
+        ><button class="quiet-button" (click)="copyExportSelection()">
+          Copy selection</button
+        ><button
+          class="quiet-button"
+          [attr.aria-label]="
+            exportExpanded()
+              ? 'Restore export preview'
+              : 'Expand export preview'
+          "
+          (click)="exportExpanded.set(!exportExpanded())"
+        >
+          <cs-icon [name]="exportExpanded() ? 'shrink' : 'expand'" />{{
+            exportExpanded() ? "Restore" : "Expand preview"
+          }}
+        </button>
+      </div>
+      <div class="export-browser">
+        <nav class="export-file-list" aria-label="Exported files">
+          @for (file of Object.keys(exportFiles()); track file) {
+            <button
+              [class.active]="currentFile() === file"
+              (click)="currentFile.set(file)"
+            >
+              <cs-icon name="file" />{{ file }}
+            </button>
+          }
+        </nav>
+        <cs-source-preview class="export-file-content" [text]="fileText()" />
+      </div>
+    }
+    <div class="dialog-actions">
+      <button
+        class="quiet-button"
+        [disabled]="exporting() || !!modalError()"
+        (click)="copyExport()"
+      >
+        <cs-icon name="copy" />Copy file
+      </button>
+      <span class="dialog-note"
+        >{{ Object.keys(exportFiles()).length }} files · ZIP archive</span
+      ><button
+        class="primary-button"
+        [disabled]="exporting() || !!modalError()"
+        (click)="downloadExport()"
+      >
+        <cs-icon name="download" />{{
+          exporting() ? "Preparing…" : exportLabel()
+        }}
+      </button>
+      @if (native) {
+        <button
+          class="quiet-button"
+          [disabled]="exporting() || !!modalError()"
+          (click)="nativeExport()"
+        >
+          <cs-icon name="folder" />Export to folder</button
+        ><button class="quiet-button" (click)="native.showExportFolder()">
+          Show exported folder
+        </button>
+      }
+    </div>
+  } @else if (modal() === "devices") {
+    <p class="dialog-description">
+      The same document, rendered at three actual viewport widths. Interactions
+      run inside isolated previews.
+    </p>
+    <div class="device-comparison">
+      @for (device of devices; track device.name) {
+        <article>
+          <div class="device-comparison-title">
+            <strong>{{ device.name }}</strong
+            ><span>{{ device.width }}px</span>
+          </div>
+          <div class="device-comparison-frame">
+            <iframe
+              [title]="device.name + ' device preview'"
+              sandbox="allow-scripts"
+              [srcdoc]="compareDocument()"
+              [style.width.px]="device.width"
+              [style.transform]="'scale(' + device.scale + ')'"
+              [style.height.px]="600 / device.scale"
+            ></iframe>
+          </div>
+        </article>
+      }
+    </div>
+  } @else if (modal() === "help") {
+    <div class="help-learning">
+      <cs-icon name="book" /><span
+        >New here? Build your first page with a guided tutorial.</span
+      ><button class="primary-button" (click)="show('learn')">
+        Open Learning Center
+      </button>
+    </div>
+    <p class="dialog-description">
+      A thoughtful space for building the web. Design visually, fine-tune your
+      source, and export to the framework you use.
+    </p>
+    <div class="shortcut-grid">
+      @for (
+        s of [
+          ["Undo", "Ctrl Z"],
+          ["Redo", "Ctrl Shift Z"],
+          ["Copy", "Ctrl C"],
+          ["Paste", "Ctrl V"],
+          ["Duplicate", "Ctrl D"],
+          ["Group siblings", "Ctrl G"],
+          ["Save", "Ctrl S"],
+          ["Delete selection", "Delete"],
+          ["Select tool", "V"],
+          ["Pan tool", "H"],
+          ["Search library", "/"],
+          ["Application full screen", "F11"],
+          ["Focus canvas", "Ctrl Shift F"],
+          ["Restore workspace", "Esc"],
+          ["Multi-select", "Shift + click"],
+        ];
+        track s[0]
+      ) {
+        <div>
+          <span>{{ s[0] }}</span
+          ><kbd>{{ s[1] }}</kbd>
+        </div>
+      }
+    </div>
+    <p class="dialog-note">
+      Double-click text on the canvas to edit. Drag a layer onto another layer
+      to reparent it. Resize with the bottom-right selection handle; turn on the
+      grid for 8px snapping. Generated templates provide presentation and
+      configured interactions; connect your own backend for authentication and
+      data workflows.
+    </p>
+    <button class="primary-button" (click)="close()">
+      Back to creating<cs-icon name="arrow" />
+    </button>
+  }
+</dialog>

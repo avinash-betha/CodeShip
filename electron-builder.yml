@@ -1,0 +1,29 @@
+appId: studio.codeship.desktop
+productName: CodeShip
+artifactName: CodeShip-${version}-${arch}.${ext}
+directories:
+  app: dist
+  output: release
+files:
+  - desktop/**
+  - studio/browser/**
+  - package.json
+  - "!node_modules/**"
+  - "!**/*.map"
+extraMetadata:
+  main: desktop/main.cjs
+asar: true
+npmRebuild: false
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: apps/desktop/icon.ico
+  signExecutable: false
+nsis:
+  installerIcon: apps/desktop/icon.ico
+  uninstallerIcon: apps/desktop/icon.ico
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  deleteAppDataOnUninstall: false

@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CodeShip internal developer reference</title>
+<style>
+:root{color-scheme:light;--bg:#f5f7f3;--panel:#fff;--ink:#213129;--muted:#526456;--line:#d8e0d5;--accent:#2c6339;--code:#17261e;--code-ink:#edf6e9}
+:root[data-theme=dark]{color-scheme:dark;--bg:#17201c;--panel:#202c25;--ink:#edf4e9;--muted:#bac9b8;--line:#425446;--accent:#b8e99c;--code:#101913;--code-ink:#edf6e9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 system-ui,sans-serif}a{color:var(--accent);text-underline-offset:4px}button,input{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);padding:8px 13px}button:hover{border-color:var(--accent)}:focus-visible{outline:3px solid var(--accent);outline-offset:3px}header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px 32px;border-bottom:1px solid var(--line);background:var(--panel)}header strong{font-size:20px}header p{margin:2px 0 0;color:var(--muted);font-size:14px}.header-actions{display:flex;gap:8px;flex-wrap:wrap}.layout{display:grid;grid-template-columns:280px minmax(0,1fr);max-width:1440px;margin:auto}.sidebar{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;padding:28px 24px}label{display:block;font-size:13px;font-weight:600}input{width:100%;padding:10px 12px;margin:8px 0 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink)}nav{display:grid;gap:7px}nav a{padding:10px 12px;border:1px solid transparent;border-radius:8px;text-decoration:none;font-size:14px}nav a:hover,nav a[aria-current=true]{border-color:var(--line);background:var(--panel)}.scope{font-size:13px;color:var(--muted);margin-top:24px}.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--accent)}main{padding:36px 40px 80px;min-width:0}.intro,article{max-width:860px;margin:0 auto 32px}.intro h1{font-size:clamp(30px,4vw,42px);line-height:1.15;margin:12px 0 20px;letter-spacing:-.035em}.intro p{color:var(--muted)}article{padding:32px;background:var(--panel);border:1px solid var(--line);border-radius:16px;scroll-margin-top:24px}h2{font-size:28px;line-height:1.25;letter-spacing:-.025em;margin:8px 0 18px}h3{font-size:20px;line-height:1.35;margin:32px 0 12px}p{margin:12px 0 18px}li{padding-left:6px;margin:12px 0}li::marker{color:var(--accent);font-weight:700}.article-intro{font-size:18px;color:var(--muted)}.code-block{border-radius:10px;overflow:hidden;background:var(--code);color:var(--code-ink);margin-top:18px}.code-toolbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid #ffffff30;font-size:12px}.code-toolbar button{padding:5px 10px;background:transparent;color:var(--code-ink);border-color:#ffffff50;font-size:12px}pre{padding:18px;margin:0;overflow:auto;line-height:1.65;font-size:13px}code{font-family:Consolas,monospace}.caption{font-size:13px;color:var(--muted)}.callout{border-left:3px solid var(--accent);padding:16px 20px;margin:20px 0;background:var(--bg)}.callout p{margin:8px 0 0}.related{display:flex;gap:10px 18px;flex-wrap:wrap;margin-top:20px;font-size:14px}.user-reference{color:var(--muted)}.user-reference small{font-size:11px}#status{min-height:24px;color:var(--muted);font-size:13px}[hidden]{display:none!important}.empty{padding:24px;border:1px solid var(--line);border-radius:12px}
+@media(max-width:850px){header{align-items:flex-start;padding:20px;flex-wrap:wrap}.layout{grid-template-columns:1fr}.sidebar{position:static;max-height:none;padding:20px}nav{grid-template-columns:repeat(2,minmax(0,1fr))}.scope{margin-top:12px}main{padding:12px 20px 50px}article{padding:24px}}
+@media(max-width:480px){nav{grid-template-columns:1fr}article{padding:20px}.header-actions{width:100%}pre{font-size:12px}}
+@media print{header,.sidebar,.header-actions,.code-toolbar button,#status{display:none}.layout{display:block}main{padding:0}.intro,article{max-width:none}article,article[hidden]{display:block!important;border:0;break-before:page;padding:0;background:white;color:#111}h2,h3{break-after:avoid}pre{white-space:pre-wrap;background:#f4f4f4;color:#111}.caption,.article-intro{color:#333}}
+</style></head>
+<body><header><div><strong>CodeShip / Developer reference</strong><p>Internal engineering handbook. Separate from the customer application.</p></div><div class="header-actions"><button id="theme" type="button">Toggle theme</button><button id="print" type="button">Print reference</button></div></header>
+<div class="layout"><aside class="sidebar"><label for="search">Find an internal guide</label><input id="search" type="search" placeholder="Search architecture, commands, Windows..." autocomplete="off"><p id="status" role="status">8 internal guides</p><nav aria-label="Internal guide chapters"><a href="#architecture" data-guide="architecture">CodeShip architecture</a><a href="#development-setup" data-guide="development-setup">Development setup</a><a href="#run-locally" data-guide="run-locally">Run CodeShip locally</a><a href="#extending-library" data-guide="extending-library">Adding components and screen templates</a><a href="#testing" data-guide="testing">Testing and packaged-app verification</a><a href="#build-windows" data-guide="build-windows">Building CodeShip for Windows: From Source Code to EXE Installer</a><a href="#build-troubleshooting" data-guide="build-troubleshooting">Build troubleshooting</a><a href="#release-checklist" data-guide="release-checklist">Release checklist</a></nav><p class="scope">For maintaining and releasing CodeShip. Customer tutorials and framework integration remain in the app's Documentation Center.</p></aside>
+<main><div class="intro"><span class="eyebrow">Engineering / local reference</span><h1>Build, maintain and release CodeShip.</h1><p>This self-contained HTML file keeps architecture, setup, extension, testing and Windows release instructions available offline. It is not shipped in the production app. Run commands from the source repository root unless a chapter states otherwise.</p></div>
+<p id="empty" class="empty" hidden>No guides match. Try a command, filename or feature name.</p>
+<article id="architecture" data-article><span class="eyebrow">Maintaining CodeShip</span><h2>CodeShip architecture</h2><p class="article-intro">Trace a document change from Angular controls through the shared model, canvas, persistence and exporters. This guide is for maintainers changing CodeShip itself; installing generated UI components uses the separate Code Export guides.</p><section id="architecture-modules">
+    <h3>Find the module that owns the change</h3>
+    <p>apps/studio/src contains the Angular shell, canvas, library, inspector, documentation and code workspace. packages/document-model defines Project/Page/ElementNode and migrations. packages/editor-core/store.ts owns selection, immutable document transactions, history, validation and save coordination; geometry.ts contains placement/resize helpers and import.ts converts sanitized source.</p><p>packages/css-engine uses PostCSS for parsing and scoped declaration edits. packages/responsive-engine derives recommendations from measured layouts. packages/animation-engine generates motion CSS. packages/component-registry supplies primitive entries, component factories, screen factories, presets and shared styles; packages/icon-factory supplies the original vector system.</p><p>packages/codegen-core renders common markup, extracts selections/dependencies, formats files and creates ZIPs. exporter-html, exporter-angular and exporter-nextjs specialize target syntax and project scaffolding. packages/persistence chooses browser or native storage through packages/desktop-bridge. apps/desktop owns main, preload and filesystem storage.</p>
+    
+    
+    
+    
+  </section><section id="architecture-document">
+    <h3>Keep the universal model authoritative</h3>
+    <p>Project stores pages, tokens, assets, component snapshots and metadata. Each Page has root and CSS source. ElementNode stores id/tag/name/attributes/text/children/interactions. IDs join style selectors and interaction targets; cloning/reusable insertion remaps them rather than sharing mutable nodes.</p><p>Use store transactions for applied document mutations so validation/history/autosave remain coordinated. UI-only state such as panel visibility or a source draft belongs outside the document. Inspector edits commit immediately; HTML/CSS source application validates and commits a replacement in one operation. Saved blocks are snapshots, not live linked definitions.</p>
+    
+    
+    
+    
+  </section><section id="architecture-canvas">
+    <h3>Separate editable rendering from live behavior</h3>
+    <p>canvas.component renders the active document in an iframe and owns parent-surface pointer, keyboard, selection and geometry handling. The editing frame permits same-origin access for measurement but no scripts. Live preview uses supported generated scripts in a sandbox without same-origin privileges. Keep those capabilities separate when changing preview behavior.</p><p>Responsive measurement renders seven sample widths before recommendations are reviewed. Zoom transforms the visible stage, while viewport dimensions affect CSS. A pointer gesture needs coordinate conversion through zoom and a single final history transaction, not dozens of autosaved micro-edits.</p>
+    
+    
+    
+    
+  </section><section id="architecture-desktop">
+    <h3>Respect main, preload and renderer boundaries</h3>
+    <p>Electron main creates a sandboxed/context-isolated BrowserWindow, registers codeship://app and owns native file/menu/window APIs. preload exposes a frozen explicit bridge; the renderer does not receive filesystem or Node access. Validate IPC payloads, the top-level sender and authorized project/export paths in the host.</p><p>The local protocol confines files to the renderer bundle and serves correct MIME/CSP headers. Navigation, popups and permissions are restricted. Keep script CSP strict and Angular critical-CSS inlining disabled: the optimized inline onload stylesheet switch is incompatible with that policy. Do not weaken the host to solve an asset-path error.</p>
+    
+    
+    
+    
+  </section><section id="architecture-persistence">
+    <h3>Follow a save and an export separately</h3>
+    <p>Native persistence serializes writes, externalizes content-hashed assets, flushes/replaces JSON atomically and retains backups. Settings/recent references use userData; projects use their own folders. Switching/closing must preserve an unsaved draft if persistence fails. Browser IndexedDB remains a development fallback.</p><p>generateExport validates the applied project, extracts scope, localizes assets, selects a target exporter and formats resulting files. Source output is independent of editor metadata. Component export differs from complete-project scaffolding; changes to either path need real target build/runtime fixtures, not only string snapshots.</p>
+    
+    
+    
+    
+  </section><section id="architecture-change">
+    <h3>Make a focused change safely</h3>
+    
+    <ol><li>Locate the model/engine that owns the behavior and reproduce it with a minimal project.</li><li>Change the shared operation rather than adding a renderer-only workaround when state must persist/export.</li><li>Add meaningful regression coverage for the failure, then run lint, typecheck and affected unit/browser/export/native checks.</li><li>Build the renderer and test the packaged boundary if changing CSP, assets, preload, persistence or startup. Record which exact artifact was checked.</li></ol>
+    
+    
+    
+  </section><div class="related"><a href="#development-setup">Development setup</a><span class="user-reference">document format <small>(in CodeShip Docs)</small></span><a href="#extending-library">Adding components and screen templates</a><a href="#testing">Testing and packaged-app verification</a></div></article><article id="development-setup" data-article><span class="eyebrow">Desktop development</span><h2>Development setup</h2><p class="article-intro">Prepare a reproducible environment for the existing CodeShip workspace.</p><section id="development-setup-prepare">
+    <h3>Open a writable source workspace</h3>
+    
+    <ol><li>Extract the supplied source ZIP or open your team&#39;s checkout in a local writable directory. Work from the root containing package.json, pnpm-lock.yaml and angular.json.</li><li>Use a PowerShell terminal with Node 22.12+ available on PATH. Check Corepack and its pinned pnpm version before installing the lockfile.</li><li>Install dependencies using --frozen-lockfile. The initial dependency/Electron/browser downloads need internet; the installed editor does not.</li><li>Run typecheck and unit tests to establish a baseline, then choose the browser or native workflow in Run CodeShip locally.</li></ol>
+    
+    
+    
+  </section><section id="development-setup-toolchain">
+    <h3>Use the repository toolchain</h3>
+    <p>Install Node 22.12+ and use pnpm 10.11.0 through Corepack. Keep pnpm-lock.yaml unchanged for a release build. Current dependencies require no C++ native addon compilation.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-1">Copy code</button></div><pre><code id="code-1">node --version
+corepack pnpm --version
+corepack pnpm install --frozen-lockfile
+corepack pnpm typecheck
+corepack pnpm test</code></pre></div><p class="caption">Run from the directory containing package.json. A supported Node runtime avoids engine mismatch warnings.</p>
+    
+  </section><section id="development-setup-workspace">
+    <h3>Find the relevant source</h3>
+    <p>apps/studio owns Angular components. apps/desktop owns the trusted host, protocol and preload. packages contains the document, CSS, canvas, export, icon and persistence engines. tests/e2e exercises real browser engines. No runtime credentials are needed.</p>
+    
+    
+    
+    <div class="related"><a href="#run-locally">Run CodeShip locally</a><a href="#build-windows">Build Windows EXE</a></div>
+  </section><section id="development-setup-baseline">
+    <h3>Confirm the development environment</h3>
+    <p>A working baseline reports no TypeScript errors and passing Vitest results. pnpm build emits dist/studio/browser; pnpm desktop:build also emits dist/desktop/main.cjs and preload.cjs. Source maps/Monaco assets are configured locally; no .env file, remote database or credentials are required for startup.</p><p>If Electron&#39;s binary was not downloaded, run node node_modules/electron/install.js and retry its version check. If browser binaries are absent, use pnpm exec playwright install before browser tests. Diagnose the first reported toolchain error rather than changing the lockfile or disabling validation.</p>
+    
+    
+    
+    
+  </section><div class="related"><a href="#architecture">CodeShip architecture</a><a href="#run-locally">Run CodeShip locally</a><a href="#testing">Testing and packaged-app verification</a><a href="#build-troubleshooting">Build troubleshooting</a></div></article><article id="run-locally" data-article><span class="eyebrow">Desktop development</span><h2>Run CodeShip locally</h2><p class="article-intro">Choose live browser iteration or the native desktop workflow according to the feature you are changing.</p><section id="run-locally-choose">
+    <h3>Choose the boundary you need to debug</h3>
+    <p>Complete Development setup first. Use browser development for live Angular renderer changes, desktop development for menus/window state/preload/filesystem behavior, and a production local build for CSP and bundled asset verification. Browser IndexedDB data and native project folders are separate; opening one environment does not transfer projects from the other.</p>
+    
+    
+    
+    
+  </section><section id="run-locally-browser">
+    <h3>Angular development server</h3>
+    <p>pnpm start serves 127.0.0.1:4200 and rebuilds the renderer. Browser projects use IndexedDB, while the Electron application uses permanent project folders. Keep that distinction in mind when testing saving.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-2">Copy code</button></div><pre><code id="code-2">corepack pnpm start</code></pre></div><p class="caption">Use Ctrl+C to stop. If the port is occupied, inspect the owning process before stopping anything. Restart Angular after editing angular.json.</p>
+    
+  </section><section id="run-locally-desktop">
+    <h3>Native desktop debugging</h3>
+    <p>pnpm dev:desktop builds the local renderer and host, opens DevTools, and keeps native IPC restricted to codeship://app. Re-run after source changes. The launcher forwards errors and owns only its spawned Electron process.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-3">Copy code</button></div><pre><code id="code-3">corepack pnpm dev:desktop</code></pre></div><p class="caption">Close the application or press Ctrl+C to stop. Production desktop:start loads an already built renderer without opening DevTools.</p>
+    
+  </section><section id="run-locally-production">
+    <h3>Check the production local host</h3>
+    
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-4">Copy code</button></div><pre><code id="code-4">corepack pnpm desktop:build
+corepack pnpm desktop:start</code></pre></div><p class="caption">Build before starting. The main process loads the renderer from codeship://app rather than the HTTP development server.</p>
+    
+  </section><section id="run-locally-debug">
+    <h3>Inspect failures and stop your session</h3>
+    <p>Use the terminal for Angular/esbuild diagnostics and desktop DevTools for renderer/CSP/protocol requests. The development desktop command rebuilds once and opens DevTools; stop it and rerun after source changes because native hot reload is not included. The launcher closes its own spawned process tree on Ctrl+C.</p><p>If startup is blank, check dist paths, stylesheet requests and local Monaco assets. If the browser port is busy, identify its owner before choosing another session; do not kill unrelated processes. Save any manual design experiments or use an isolated profile/fixture for native verification.</p>
+    
+    
+    
+    
+  </section><div class="related"><a href="#development-setup">Development setup</a><a href="#architecture">CodeShip architecture</a><a href="#testing">Testing and packaged-app verification</a><a href="#build-troubleshooting">Build troubleshooting</a></div></article><article id="extending-library" data-article><span class="eyebrow">Maintaining CodeShip</span><h2>Adding components and screen templates</h2><p class="article-intro">Extend the bundled library with factories that create fresh universal-model nodes and safe CSS. A new entry must work in the editor, mobile preview and independent framework exports, rather than depending on Angular editor components at runtime.</p><section id="extending-library-entry">
+    <h3>Use the existing factory contract</h3>
+    <p>LibraryEntry is declared in packages/component-registry/index.ts with id, name, description, category, icon and create(). create returns a fresh {root, css}; use element() so every insertion gets new IDs. modern.ts contains modern component entries, screens.ts contains complete modern screens, and index.ts exports the combined components/templates arrays.</p><p>Add scoped CSS beside the appropriate existing style system. A factory&#39;s icon field names a CodeShip UI symbol, while an SVG inside the design is an actual model node. Categories are derived from entries by the library, so choose an existing category unless the pattern warrants another one.</p>
+    
+    
+    
+    
+  </section><section id="extending-library-example">
+    <h3>Create a small editable notice factory</h3>
+    
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>typescript</span><button type="button" data-copy="code-5">Copy code</button></div><pre><code id="code-5">// Example module beside packages/component-registry/index.ts:
+import { element } from &#39;../document-model&#39;;
+import type { LibraryEntry } from &#39;./index&#39;;
+
+export const noticeEntry: LibraryEntry = {
+  id: &#39;project-notice&#39;, name: &#39;Project notice&#39;, category: &#39;Feedback&#39;,
+  icon: &#39;box&#39;, description: &#39;A labeled status notice with editable text.&#39;,
+  create: () =&gt; ({
+    root: element(&#39;aside&#39;, &#39;&#39;, { class: &#39;project-notice&#39; }, [
+      element(&#39;h2&#39;, &#39;Project saved&#39;),
+      element(&#39;p&#39;, &#39;Your latest changes are available locally.&#39;),
+    ]),
+    css: &#39;.project-notice { padding: 24px; border: 1px solid #d7dfd6; border-radius: 12px; }&#39;,
+  }),
+};</code></pre></div><p class="caption">Import noticeEntry and include it in the exported components array. Do not reuse a previously created root across insertions.</p>
+    
+  </section><section id="extending-library-steps">
+    <h3>Verify the complete insertion workflow</h3>
+    
+    <ol><li>Register the entry in components, or in templates if it is a replacement screen. Use a stable unique id and meaningful name/description for local search.</li><li>Preview it through the library eye button at 375px and 1200px. Insert it twice and confirm independent IDs, editable text and styles.</li><li>Test insertion into a valid parent, nested selection, copy/paste, save/reopen and Undo.</li><li>Check long labels and intermediate widths. Use flexible tracks and field wrappers rather than fixed desktop dimensions.</li><li>Export it as HTML, Angular and Next.js. Build and serve the generated fixtures to detect template syntax, CSS Module, asset and runtime failures.</li></ol>
+    
+    
+    
+  </section><section id="extending-library-interactions">
+    <h3>Use supported declarative interactions</h3>
+    <p>Interaction events/actions are defined in packages/document-model. Common runtime behavior is emitted by packages/codegen-core/runtime.ts. Target actual node IDs and ensure cloning/extraction remaps or warns about those dependencies. Avoid editor-only event handlers or arbitrary imported scripts inside the design.</p><p>A new action requires model validation, preview/runtime behavior, target export cleanup and tests. It should degrade accessibly and document what data it does or does not persist. A new screen using a demo authentication form must not imply that it provides a remote authentication service.</p>
+    
+    
+    
+    
+  </section><section id="extending-library-maintain">
+    <h3>Keep documentation and tests aligned</h3>
+    <p>Update the relevant library guide when labels, categories or supported controls change. Counts in articles are release inventory and should be checked against the registry. The documentation content modules are typed DocArticle arrays; retain stable article/section links, add related references and verify offline search after editing.</p>
+    
+    
+    
+    
+  </section><div class="related"><a href="#architecture">CodeShip architecture</a><a href="#testing">Testing and packaged-app verification</a><span class="user-reference">components <small>(in CodeShip Docs)</small></span><span class="user-reference">templates <small>(in CodeShip Docs)</small></span></div></article><article id="testing" data-article><span class="eyebrow">Maintaining CodeShip</span><h2>Testing and packaged-app verification</h2><p class="article-intro">Choose checks according to the boundary that changed, then record results against the exact source or artifact. A successful Angular build does not prove generated applications or native project storage work.</p><section id="testing-local">
+    <h3>Run fast checks from the repository root</h3>
+    
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-6">Copy code</button></div><pre><code id="code-6">corepack pnpm lint
+corepack pnpm typecheck
+corepack pnpm test
+corepack pnpm build
+corepack pnpm docs:build</code></pre></div><p class="caption">Lint, strict TypeScript, Vitest and Angular compilation cover different failure classes. docs:build generates the separate HTML developer reference and Windows Markdown guide from docs/internal sources.</p>
+    
+  </section><section id="testing-browser">
+    <h3>Exercise real renderer workflows</h3>
+    <p>pnpm test:e2e uses Playwright with Chromium, Firefox and WebKit, one worker and a local 127.0.0.1:4200 server. A running development server can be reused. Use a focused file/grep/project selection during iteration, then broaden when a shared behavior changed. Do not overlap runners writing the same test-results directory.</p><p>Failures retain traces/screenshots. Inspect the first relevant failure and its UI state; do not update visual baselines merely to remove a difference. Documentation checks should load every article, resolve internal links, verify search/copy/deep links and exercise editor actions without changing the project.</p>
+    
+    
+    
+    
+  </section><section id="testing-exports">
+    <h3>Build independent generated applications</h3>
+    
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-7">Copy code</button></div><pre><code id="code-7">corepack pnpm test:exports</code></pre></div><p class="caption">scripts/verify-exports.ts installs/builds/serves generated HTML, Angular and Next.js fixtures, including component catalogues. It needs network/cache access and takes longer than a string-level unit test.</p>
+    
+  </section><section id="testing-native">
+    <h3>Check the trusted desktop boundary</h3>
+    <p>After desktop:build, test:desktop launches an isolated Electron profile and exercises offline startup, real styles/Monaco, clipboard, files, save failure, backup/recovery, export confinement and window modes. CODESHIP_PACKAGED_EXE selects an unpacked or installed executable instead of the local host bundle. Use an absolute verified path.</p><p>test:installer performs an isolated Windows install, installed-app smoke and uninstall with project retention. It guards existing installs/shortcuts and active CodeShip processes. Run it sequentially with other native helpers: an NSIS uninstaller can close matching app processes. test:portable checks extraction, launch and native initial save of the portable artifact; use test:desktop on unpacked/installed builds for the broader control suite.</p>
+    
+    
+    
+    
+  </section><section id="testing-evidence">
+    <h3>Record evidence without overstating coverage</h3>
+    
+    <ol><li>Record source changes, commands, pass/fail/skip counts and any focused follow-up after a fix. A failed broad run plus focused reruns is not an unchanged-source full-suite pass.</li><li>Rebuild packages after source edits before assigning results to an installer. Record artifact size/hash/version and the path used by native tests.</li><li>Keep logs/screenshots under the existing generated/evidence locations and update DEVELOPMENT_PROGRESS.md with completed work and remaining release gates.</li><li>Treat clean-VM upgrades, signing and manual assistive-technology review as explicit gates until they have actually been performed. Do not substitute a prior artifact&#39;s evidence for a new package.</li></ol>
+    
+    
+    
+  </section><div class="related"><a href="#architecture">CodeShip architecture</a><a href="#run-locally">Run CodeShip locally</a><a href="#build-windows">Building CodeShip for Windows: From Source Code to EXE Installer</a><a href="#release-checklist">Release checklist</a></div></article><article id="build-windows" data-article><span class="eyebrow">Desktop development</span><h2>Building CodeShip for Windows: From Source Code to EXE Installer</h2><p class="article-intro">Build the actual Angular renderer, secure Electron host and Windows installer in this repository. Commands below run from the CodeShip repository root in PowerShell.</p><section id="build-windows-requirements">
+    <h3>Requirements and toolchain</h3>
+    <p>Target Windows 10/11 x64. This repository produces x64 builds; Windows ARM64 and other operating systems have not been validated. Use a maintained Windows version for distribution.</p><p>Use Node.js 22.12.0 or a compatible later Node 22 release, pnpm 10.11.0 and the checked-in pnpm-lock.yaml. The pinned desktop dependencies are Electron 44.9.0, electron-builder 26.15.3 and esbuild 0.28.1. Node is a developer prerequisite; installed users do not need it.</p><p>Use native Windows PowerShell or a PowerShell terminal in your editor. Git is optional when opening a supplied source archive. No Visual Studio C++ workload is required by the current JavaScript-only dependencies. Reserve several GB for dependencies, framework export fixtures, Electron downloads and release artifacts; the exact total varies by cache.</p><p>Dependency installation and initial packaging download tools from the network. The built application and its documentation work offline.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-8">Copy code</button></div><pre><code id="code-8">Set-Location C:\Projects\CodeShip
+node --version
+corepack --version
+corepack pnpm --version
+Get-Content package.json
+Get-Content electron-builder.yml</code></pre></div><p class="caption">Verify Node 22.12+ and pnpm 10.11.0 before installing. Install Node from the official Node.js distribution if the commands are missing. Corepack uses packageManager in package.json.</p>
+    
+  </section><section id="build-windows-source">
+    <h3>Open the source and install dependencies</h3>
+    <p>Open the source checkout or extract the source archive into a writable folder such as C:\Projects\CodeShip. This workspace has no configured public Git remote, so no clone URL is assumed. If your team supplies one, clone that URL first.</p><p>package.json defines scripts, angular.json builds apps/studio, apps/desktop holds the Electron host and preload, packages contains shared engines, and scripts/build-desktop.ts bundles the main process. No .env file, account or remote database is required.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-9">Copy code</button></div><pre><code id="code-9">Set-Location C:\Projects\CodeShip
+corepack pnpm install --frozen-lockfile
+corepack pnpm exec electron --version
+corepack pnpm exec electron-builder --version</code></pre></div><p class="caption">Install the locked dependency tree. If the Electron binary is missing after a restricted install, run node node_modules/electron/install.js, then repeat the version check.</p>
+    
+  </section><section id="build-windows-development">
+    <h3>Run Angular and the desktop application</h3>
+    <p>pnpm start runs Angular CLI on http://127.0.0.1:4200 with development source maps and live rebuilds. Read build errors in the terminal and renderer errors in browser developer tools. Ctrl+C stops the server.</p><p>pnpm dev:desktop builds Angular in development configuration, bundles main/preload and launches Electron against the local codeship://app protocol. DevTools open automatically. This command intentionally uses a local build rather than exposing native IPC to an HTTP dev server. After changing sources, stop it and run it again; there is no Electron hot reload. Closing the window or pressing Ctrl+C ends the launcher and its own child process.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-10">Copy code</button></div><pre><code id="code-10">corepack pnpm start
+# Stop with Ctrl+C before choosing the desktop workflow.
+corepack pnpm dev:desktop</code></pre></div><p class="caption">Choose browser development for live renderer updates or desktop development to exercise native file storage, menus and full-screen APIs.</p>
+    
+  </section><section id="build-windows-production">
+    <h3>Build the production application</h3>
+    <p>desktop:build first runs ng build, then bundles main.ts and preload.ts into dist/desktop/main.cjs and preload.cjs. Angular emits dist/studio/browser. The host loads codeship://app/index.html; an installed app never needs the development server.</p><p>Angular bundles the original SVG icon code, component factories, themes and structured documentation. Public documentation images and the local Monaco vs tree are copied as assets. Typography uses local system fonts. Production renderer source maps are disabled; Electron bundle maps are for local diagnostics and excluded from packaging.</p><p>Script/style optimization is enabled and font inlining disabled. Critical CSS inlining is disabled deliberately: strict CSP blocks Angular&#39;s inline onload stylesheet switch. Preserve this configuration to keep packaged styles working without weakening script security.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-11">Copy code</button></div><pre><code id="code-11">corepack pnpm check
+corepack pnpm desktop:build
+corepack pnpm test:desktop
+corepack pnpm desktop:start</code></pre></div><p class="caption">check runs lint, strict type checking, unit tests and Angular production compilation. test:desktop uses isolated projects and checks the built Electron host.</p>
+    
+  </section><section id="build-windows-installer">
+    <h3>Generate the Windows EXE installer</h3>
+    <p>electron-builder.yml declares studio.codeship.desktop, product CodeShip, ASAR packaging, the local main entry, the original application icon, and an NSIS x64 target. Only desktop bundles, renderer assets and the minimal package manifest are included. Dependency trees, source maps, tests and source files are excluded.</p><p>The assisted, per-user installer allows an installation directory and shortcut choices. Its artifact is release/CodeShip-0.2.0-x64.exe. Unpacked output is release/win-unpacked/CodeShip.exe. Keep the version in root package.json and the bundled manifest synchronized when releasing.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-12">Copy code</button></div><pre><code id="code-12">corepack pnpm desktop:package
+Get-Item release\CodeShip-0.2.0-x64.exe
+Get-FileHash release\CodeShip-0.2.0-x64.exe -Algorithm SHA256
+$env:CODESHIP_PACKAGED_EXE = (Resolve-Path release\win-unpacked\CodeShip.exe).Path
+corepack pnpm test:desktop
+Remove-Item Env:CODESHIP_PACKAGED_EXE</code></pre></div><p class="caption">Packaging rebuilds the application before creating the installer. Record the actual artifact size, hash and test results for each release; do not reuse a previous build&#39;s hash.</p>
+    
+  </section><section id="build-windows-portable">
+    <h3>Optional portable build</h3>
+    <p>The portable target creates release/CodeShip-0.2.0-x64-portable.exe without an installer. It uses the same packaged renderer and secure host. Portable refers to installation only: settings still use the Windows user-data location, and projects use the chosen permanent folder. It is not a USB-contained profile.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-13">Copy code</button></div><pre><code id="code-13">corepack pnpm desktop:portable
+Get-Item release\CodeShip-0.2.0-x64-portable.exe</code></pre></div><p class="caption">Use the explicit portable script. Run pnpm test:portable to verify extraction, launch and native initial save. Use test:desktop against unpacked or installed output for the broader native suite.</p>
+    
+  </section><section id="build-windows-installation">
+    <h3>Install, launch and uninstall</h3>
+    <p>Run the generated installer interactively, choose a writable destination and select shortcuts. The default per-user installation needs no administrative permission; protected destinations can require elevation. CodeShip starts independently of Node or a browser server.</p><p>Settings and recent project locations live under Electron&#39;s Windows userData directory, normally %APPDATA%/CodeShip. Projects default to Documents/CodeShip Projects; choose another directory in Application settings. Save as makes an independent copy in a new empty directory.</p><p>Uninstall through Windows Installed apps or the generated uninstaller. deleteAppDataOnUninstall is false and project directories are outside the application bundle. Installing an updated EXE is a manual update; there is no background updater. Back up projects before testing an upgrade.</p>
+    
+    <aside class="callout"><strong>Project retention</strong><p>The installer test creates its own project marker and verifies that uninstall retains it. It refuses to run if CodeShip is already installed or running, so it cannot replace a user&#39;s installation.</p></aside>
+    
+    
+  </section><section id="build-windows-verification">
+    <h3>Verify the packaged and installed application</h3>
+    <p>Run the browser regression suite against the renderer, then the native smoke against unpacked and installed EXEs. The native smoke verifies strict isolation, loaded styles, offline documentation, saving/reopening, recovery, export confinement, local Monaco, themes and save-failure protection. Full-screen tests must also assert native BrowserWindow state, not just a CSS class.</p><p>test:installer performs an actual silent install into a new workspace fixture, runs the installed application smoke, uninstalls, and checks project retention and registration cleanup. Close any CodeShip windows first. Read scripts/verify-installer.ps1 before running on a release machine.</p><p>A successful automated run on this account does not establish clean-VM or existing-install upgrade coverage. Record those manual results separately in docs/RELEASE_CHECKLIST.md.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-14">Copy code</button></div><pre><code id="code-14">corepack pnpm test:e2e
+corepack pnpm test:exports
+corepack pnpm test:installer</code></pre></div><p class="caption">Run test:installer after desktop:package. Do not run two browser test runners with the same output directory concurrently or run installer tests beside another CodeShip session.</p>
+    
+  </section><section id="build-windows-signing">
+    <h3>Signing and distribution</h3>
+    <p>Development installers are unsigned because this repository has no signing certificate. Windows may show an unknown publisher or SmartScreen warning. A signature identifies the publisher and protects integrity; it does not guarantee instant SmartScreen reputation.</p><p>For public releases obtain an appropriate Authenticode certificate or a supported managed signing service. The current config sets win.signExecutable: false for unsigned development builds. A signing pipeline must override that to true, supply the provider credentials securely, and verify both executable and installer signatures.</p><p>For electron-builder 26, use WIN_CSC_LINK (or CSC_LINK) and WIN_CSC_KEY_PASSWORD (or CSC_KEY_PASSWORD) as secret environment variables for supported certificate workflows. Hardware-backed and managed services need their provider&#39;s signing integration. Never commit a certificate, password or private key.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-15">Copy code</button></div><pre><code id="code-15"># In a trusted release environment with signing credentials already supplied:
+corepack pnpm exec electron-builder --config electron-builder.yml --win nsis --x64 --config.win.signExecutable=true
+Get-AuthenticodeSignature release\CodeShip-0.2.0-x64.exe
+Get-AuthenticodeSignature release\win-unpacked\CodeShip.exe</code></pre></div><p class="caption">This command requires a fresh desktop:build and valid signing credentials. Signing is a release gate, not a capability claimed for the unsigned development artifact.</p>
+    
+  </section><div class="related"><a href="#development-setup">Development setup</a><a href="#run-locally">Run CodeShip locally</a><span class="user-reference">install desktop <small>(in CodeShip Docs)</small></span><a href="#build-troubleshooting">Build troubleshooting</a><a href="#release-checklist">Release checklist</a></div></article><article id="build-troubleshooting" data-article><span class="eyebrow">Desktop development</span><h2>Build troubleshooting</h2><p class="article-intro">Diagnose the first failing layer before retrying a complete package build.</p><section id="build-troubleshooting-tools">
+    <h3>Node, package manager and dependencies</h3>
+    <p>Command not found: install Node and reopen the terminal. Unsupported engine: verify Node &gt;=22.12. Package manager mismatch: use corepack pnpm, which reads the pinned version. Missing modules: install with --frozen-lockfile. Missing Electron executable: run its install.js script.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-16">Copy code</button></div><pre><code id="code-16">Get-Command node
+node --version
+corepack pnpm --version
+corepack pnpm install --frozen-lockfile
+node node_modules/electron/install.js</code></pre></div><p class="caption">Do not delete user projects or globally replace package managers to repair a local build.</p>
+    
+  </section><section id="build-troubleshooting-compiler">
+    <h3>TypeScript or Angular failures</h3>
+    <p>Run typecheck to isolate TypeScript errors; ng build also checks Angular templates. Correct the first file/line error before packaging. If styles are missing only in an old dev session, restart ng serve after configuration changes.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-17">Copy code</button></div><pre><code id="code-17">corepack pnpm typecheck
+corepack pnpm build
+Get-Content angular.json</code></pre></div><p class="caption">Production scripts should exit nonzero on compilation failure. Packaging stale dist output can hide a broken renderer.</p>
+    
+  </section><section id="build-troubleshooting-blank">
+    <h3>Blank window, missing assets or Monaco</h3>
+    <p>Confirm dist/desktop/main.cjs, preload.cjs and dist/studio/browser/index.html exist. Use dev:desktop DevTools to inspect CSP errors and codeship://app resource requests. Keep critical CSS inlining disabled. Monaco must load local /monaco/vs/loader.js; check the asset glob in angular.json.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-18">Copy code</button></div><pre><code id="code-18">Get-Item dist\desktop\main.cjs, dist\desktop\preload.cjs
+Get-Item dist\studio\browser\index.html
+Get-Item dist\studio\browser\monaco\vs\loader.js
+corepack pnpm dev:desktop</code></pre></div><p class="caption">Do not enable nodeIntegration or weaken CSP to fix an asset path. Inspect the protocol MIME map and bundled files instead.</p>
+    
+  </section><section id="build-troubleshooting-packaging">
+    <h3>Packaging, branding and permissions</h3>
+    <p>A missing icon must be fixed at apps/desktop/icon.png. The Windows packager converts this original high-resolution asset into executable/installer icon resources. Inspect electron-builder.yml paths and ensure the output EXE is not still running or locked. Build in a writable source folder.</p>
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-19">Copy code</button></div><pre><code id="code-19">Get-Item apps\desktop\icon.png
+Get-Process CodeShip -ErrorAction SilentlyContinue
+corepack pnpm desktop:unpacked
+Get-Item release\win-unpacked\CodeShip.exe</code></pre></div><p class="caption">Close only your own test session before repackaging. Permission failures in project saving require repairing the selected project folder, not reinstalling CodeShip.</p>
+    
+  </section><section id="build-troubleshooting-warnings">
+    <h3>Signing warnings and filesystem errors</h3>
+    <p>An unsigned installer shows an unknown publisher. Distribute signed releases through a trusted channel; do not claim development builds are signed. If a save fails, leave the application open, correct disk space/permissions and retry; Save as to a new empty writable folder can preserve the current draft.</p>
+    
+    
+    
+    <div class="related"><a href="#build-windows">Signing and release build steps</a><span class="user-reference">Saving, backups and recovery <small>(in CodeShip Docs)</small></span></div>
+  </section><div class="related"></div></article><article id="release-checklist" data-article><span class="eyebrow">Desktop development</span><h2>Release checklist</h2><p class="article-intro">Treat release readiness as evidence recorded against an exact installer, not a successful compile alone.</p><section id="release-checklist-candidate">
+    <h3>Prepare the exact release candidate</h3>
+    <p>Start from a reviewed source state with Node 22.12+ and the locked pnpm toolchain. Synchronize version/branding in package.json and the bundled desktop manifest. Update user guides for changed controls and regenerate DESKTOP_BUILD_GUIDE.md with pnpm docs:build. Keep source ZIPs free of dependencies, generated fixtures and credentials using pnpm source:package.</p>
+    
+    
+    
+    
+  </section><section id="release-checklist-checks">
+    <h3>Automated checks</h3>
+    
+    <ol><li>Run lint, typecheck, unit tests and the production build.</li><li>Run browser regressions in Chromium, Firefox and WebKit, plus actual HTML/Angular/Next.js export builds.</li><li>Package the installer; run native smoke against unpacked and installed executables.</li><li>Record the SHA256 hash, size, version and test results for that exact artifact.</li></ol>
+    
+    
+    
+  </section><section id="release-checklist-manual">
+    <h3>Distribution gates</h3>
+    <p>Verify on a clean Windows VM, test an upgrade over an existing installation, inspect accessibility with keyboard and assistive technology, sign the release and verify signatures. Check that uninstall leaves projects and backups intact. No auto-update mechanism is included.</p>
+    
+    
+    
+    <div class="related"><a href="#build-windows">Build and verify the EXE</a><a href="#build-troubleshooting">Resolve build failures</a></div>
+  </section><section id="release-checklist-artifacts">
+    <h3>Record candidate artifacts</h3>
+    
+    
+    
+    <div class="code-block"><div class="code-toolbar"><span>powershell</span><button type="button" data-copy="code-20">Copy code</button></div><pre><code id="code-20">Get-Item release\CodeShip-0.2.0-x64.exe
+Get-FileHash release\CodeShip-0.2.0-x64.exe -Algorithm SHA256
+Get-AuthenticodeSignature release\CodeShip-0.2.0-x64.exe</code></pre></div><p class="caption">Use the current version&#39;s actual paths. Record hash, size, signature status and test results for that exact candidate in the release evidence.</p>
+    
+  </section><section id="release-checklist-decision">
+    <h3>Decide whether to distribute or repair</h3>
+    <p>If packaging passes but native startup, save, offline assets or installer retention fails, fix the cause and rebuild/retest the new candidate. Do not attach old test results to a replacement EXE. A content-only source delivery must clearly distinguish its rebuilt renderer/source archive from previously packaged executables.</p><p>Public distribution still requires the release&#39;s signing, clean-VM/upgrade and manual review gates. If any gate is incomplete, state that boundary explicitly and label the artifact accordingly. Retain prior installer/project backups for a deliberate recovery plan; there is no background auto-update or automatic project rollback service.</p>
+    
+    
+    
+    
+  </section><div class="related"><a href="#testing">Testing and packaged-app verification</a><a href="#build-windows">Building CodeShip for Windows: From Source Code to EXE Installer</a><a href="#build-troubleshooting">Build troubleshooting</a><span class="user-reference">projects <small>(in CodeShip Docs)</small></span></div></article>
+</main></div>
+<script>
+const search=document.getElementById('search'), chapters=[...document.querySelectorAll('[data-article]')], links=[...document.querySelectorAll('[data-guide]')], status=document.getElementById('status');
+function filter(){const terms=search.value.toLowerCase().trim().split(/\s+/).filter(Boolean);let count=0;chapters.forEach((chapter)=>{const match=terms.every((term)=>(chapter.id+' '+chapter.textContent).toLowerCase().includes(term));chapter.hidden=!match;links.find((link)=>link.dataset.guide===chapter.id).hidden=!match;if(match)count++;});document.getElementById('empty').hidden=count>0;status.textContent=count+' of '+chapters.length+' guides';}
+search.addEventListener('input',filter);
+document.addEventListener('click',async(event)=>{const copy=event.target.closest('button[data-copy]');if(copy){const text=document.getElementById(copy.dataset.copy).textContent;try{if(navigator.clipboard)await navigator.clipboard.writeText(text);else throw new Error('Clipboard unavailable');}catch{const field=document.createElement('textarea');field.value=text;field.style.position='fixed';field.style.opacity='0';document.body.append(field);field.select();const copied=document.execCommand('copy');field.remove();if(!copied){status.textContent='Select the code and copy it with your keyboard.';return;}}copy.textContent='Copied';status.textContent='Code copied.';return;}const anchor=event.target.closest('a[href^="#"]');if(anchor){const chapter=document.getElementById(anchor.hash.slice(1));if(chapter?.hidden){search.value='';filter();}links.forEach((link)=>link.setAttribute('aria-current',String(link.hash===anchor.hash)));}});
+document.getElementById('print').addEventListener('click',()=>window.print());
+try{document.documentElement.dataset.theme=localStorage.getItem('codeship-internal-docs-theme')||'light';}catch{}
+document.getElementById('theme').addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('codeship-internal-docs-theme',next);}catch{}});
+</script></body></html>

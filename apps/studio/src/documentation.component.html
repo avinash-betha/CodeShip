@@ -1,0 +1,288 @@
+<div
+  class="docs-product-header"
+  role="region"
+  aria-label="Documentation controls"
+>
+  <div class="docs-brand">
+    <span class="docs-brand-symbol"
+      ><img src="brand/codeship-64.png" width="36" height="36" alt=""
+    /></span>
+    <div>
+      <strong>CodeShip <span>Docs</span></strong
+      ><small>Design with intention.</small>
+    </div>
+    <span class="docs-version">v{{ version }}</span>
+  </div>
+  <div class="search-field docs-search">
+    <cs-icon name="search" /><input
+      aria-label="Search documentation"
+      placeholder="Search guides, properties and workflows…"
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+    /><kbd>/</kbd>
+  </div>
+  <div class="docs-header-actions">
+    <button
+      class="icon-button"
+      aria-label="Toggle documentation theme"
+      title="Toggle light and dark"
+      (click)="theme()"
+    >
+      <cs-icon name="sun" /></button
+    ><button
+      class="icon-button"
+      [attr.aria-label]="
+        expanded() ? 'Restore documentation size' : 'Expand documentation'
+      "
+      (click)="expanded.set(!expanded())"
+    >
+      <cs-icon [name]="expanded() ? 'shrink' : 'expand'" /></button
+    ><button
+      class="quiet-button docs-back"
+      aria-label="Close dialog · Back to editor"
+      (click)="exit.emit()"
+    >
+      <cs-icon name="arrow" />Back to editor
+    </button>
+  </div>
+</div>
+<div class="docs-subbar">
+  <button
+    class="quiet-button"
+    [attr.aria-expanded]="navOpen()"
+    (click)="navOpen.set(!navOpen())"
+  >
+    <cs-icon name="sidebar" />Guides</button
+  ><span>{{ articles.length }} guides · available offline</span
+  ><span class="docs-subbar-spacer"></span
+  ><button
+    class="quiet-button"
+    [attr.aria-pressed]="savedOnly()"
+    (click)="savedOnly.set(!savedOnly())"
+  >
+    <cs-icon name="book" />{{
+      savedOnly() ? "Show all guides" : "Bookmarks"
+    }}</button
+  ><button
+    class="quiet-button"
+    [attr.aria-expanded]="tocOpen()"
+    (click)="tocOpen.set(!tocOpen())"
+  >
+    <cs-icon name="list" />On this page
+  </button>
+</div>
+<div
+  class="docs-layout"
+  [class.docs-nav-hidden]="!navOpen()"
+  [class.docs-toc-hidden]="!tocOpen()"
+>
+  <nav class="docs-nav" aria-label="Documentation topics" [hidden]="!navOpen()">
+    <div class="docs-nav-intro">
+      <span class="eyebrow">THE FIELD GUIDE</span>
+      <p>From your first canvas<br />to your next release.</p>
+    </div>
+    @for (category of categories; track category) {
+      @if (hasCategory(category)) {
+        <div class="docs-nav-category">
+          <button
+            class="docs-category-toggle"
+            [attr.aria-expanded]="!isFolded(category)"
+            (click)="toggleCategory(category)"
+          >
+            {{ category
+            }}<cs-icon [name]="isFolded(category) ? 'chevron' : 'down'" />
+          </button>
+          @if (!isFolded(category)) {
+            @for (a of groupArticles(category); track a.id) {
+              @if (a.group && $first) {
+                <small class="docs-nested-label">{{ a.group }}</small>
+              }
+              <button
+                [class.active]="id() === a.id"
+                [class.docs-nested]="a.group"
+                [attr.aria-current]="id() === a.id ? 'page' : null"
+                (click)="open(a.id)"
+              >
+                @for (part of highlight(a.title); track $index) {
+                  <span [class.docs-search-match]="part.match">{{
+                    part.text
+                  }}</span>
+                }
+              </button>
+            }
+          }
+        </div>
+      }
+    }
+    @if (!filtered().length) {
+      <p class="docs-empty">
+        No guides found. Try “spacing”, “export” or “Windows”.
+      </p>
+    }
+  </nav>
+  <article
+    class="docs-article"
+    aria-label="Documentation article"
+    tabindex="0"
+    (scroll)="trackSection()"
+  >
+    <div class="docs-reading-width">
+      <div class="docs-breadcrumbs">
+        Documentation <cs-icon name="chevron" />{{ current().category }}
+        @if (current().group) {
+          <cs-icon name="chevron" />{{ current().group }}
+        }
+      </div>
+      <div class="docs-article-meta">
+        <span class="eyebrow">{{ current().category }}</span
+        ><span>{{ minutes() }} min read · v{{ version }}</span>
+      </div>
+      <div data-section="introduction" id="doc-introduction">
+        <h1>{{ current().title }}</h1>
+        <p class="docs-intro">
+          @for (part of highlight(current().intro); track $index) {
+            <span [class.docs-search-match]="part.match">{{ part.text }}</span>
+          }
+        </p>
+      </div>
+      <div class="docs-article-actions">
+        <button
+          class="quiet-button"
+          [attr.aria-pressed]="bookmarks().includes(id())"
+          (click)="bookmark()"
+        >
+          <cs-icon name="book" />{{
+            bookmarks().includes(id()) ? "Bookmarked" : "Bookmark guide"
+          }}</button
+        ><button class="quiet-button" (click)="copyLink(activeSection())">
+          <cs-icon name="link" />Copy link</button
+        ><button class="quiet-button" (click)="print()">
+          <cs-icon name="file" />Print article
+        </button>
+      </div>
+      @if (search()) {
+        <p class="docs-search-status" role="status">
+          {{ filtered().length }} matching guides for “{{ search() }}”. Choose a
+          guide from navigation.
+        </p>
+      }
+      @for (section of current().sections; track section.id) {
+        <section [attr.data-section]="section.id" [id]="'doc-' + section.id">
+          <h2>
+            {{ section.title
+            }}<button
+              class="docs-anchor"
+              [attr.aria-label]="'Copy link to ' + section.title"
+              (click)="copyLink(section.id)"
+            >
+              #
+            </button>
+          </h2>
+          @for (p of section.paragraphs; track $index) {
+            <p>
+              @for (part of highlight(p); track $index) {
+                <span [class.docs-search-match]="part.match">{{
+                  part.text
+                }}</span>
+              }
+            </p>
+          }
+          @if (section.steps) {
+            <ol>
+              @for (step of section.steps; track $index) {
+                <li>{{ step }}</li>
+              }
+            </ol>
+          }
+          @if (section.callout) {
+            <aside
+              class="docs-callout"
+              [class.docs-warning]="section.callout.kind === 'warning'"
+            >
+              <cs-icon
+                [name]="section.callout.kind === 'warning' ? 'warning' : 'help'"
+              />
+              <div>
+                <strong>{{ section.callout.title }}</strong>
+                <p>{{ section.callout.text }}</p>
+              </div>
+            </aside>
+          }
+          @if (section.image) {
+            <figure>
+              <img
+                [src]="section.image.src"
+                [alt]="section.image.alt"
+                loading="lazy"
+              />
+              <figcaption>{{ section.image.caption }}</figcaption>
+            </figure>
+          }
+          @if (section.code) {
+            <cs-doc-code [block]="section.code" />
+          }
+          @if (section.links) {
+            <div class="docs-section-links">
+              @for (link of section.links; track link.id) {
+                <button (click)="open(link.id)">
+                  {{ link.label }}<cs-icon name="arrow" />
+                </button>
+              }
+            </div>
+          }
+        </section>
+      }
+      <div class="docs-try-panel">
+        <div>
+          <span class="eyebrow">MAKE IT YOURS</span>
+          <h3>Put the guide into practice.</h3>
+          <p>Your current project stays open.</p>
+        </div>
+        <button class="primary-button" (click)="action.emit(current().action)">
+          Try in the editor<cs-icon name="arrow" />
+        </button>
+      </div>
+      <div class="docs-related">
+        <h2>Continue exploring</h2>
+        <div>
+          @for (a of related(); track a.id) {
+            <button (click)="open(a.id)">
+              <cs-icon name="file" /><span>{{ a.title }}</span
+              ><cs-icon name="arrow" />
+            </button>
+          }
+        </div>
+      </div>
+      <div class="docs-pagination">
+        <button [disabled]="index() === 0" (click)="move(-1)">
+          <small>PREVIOUS</small
+          >{{ articles[index() - 1]?.title ?? "Start of guides" }}</button
+        ><button [disabled]="index() === articles.length - 1" (click)="move(1)">
+          <small>NEXT</small
+          >{{ articles[index() + 1]?.title ?? "End of guides" }}
+        </button>
+      </div>
+      <footer class="docs-article-footer">
+        <span>CodeShip Docs · v{{ version }} · locally bundled</span
+        ><button (click)="scroll('introduction')">Back to top ↑</button>
+      </footer>
+    </div>
+  </article>
+  <aside class="docs-toc" aria-label="On this page" [hidden]="!tocOpen()">
+    <strong>ON THIS PAGE</strong>
+    @for (h of headings(); track h.id) {
+      <button
+        [class.active]="activeSection() === h.id"
+        [attr.aria-current]="activeSection() === h.id ? 'location' : null"
+        (click)="scroll(h.id)"
+      >
+        {{ h.title }}
+      </button>
+    }
+    <div class="docs-toc-tip">
+      <cs-icon name="lock" />
+      <p>Every guide is here.<br />Even when you're offline.</p>
+    </div>
+  </aside>
+</div>
+<span class="sr-only" role="status">{{ linkStatus() }}</span>

@@ -1,0 +1,188 @@
+.studio-shell.canvas-focused > :is(.topbar, .workspace-bar, .app-footer),
+.studio-shell.canvas-focused
+  .editor-workspace
+  > :is(.left-panel, .right-panel, .panel-resizer),
+.studio-shell.canvas-focused .code-panel {
+  display: none !important;
+}
+.studio-shell.canvas-focused .editor-workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+.focus-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  min-height: 54px;
+}
+.focus-toolbar strong {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.studio-shell.code-focused .code-panel {
+  position: fixed;
+  inset: 0;
+  height: 100dvh !important;
+  max-height: none;
+  z-index: 90;
+  background: var(--panel);
+}
+.studio-shell.code-focused .code-resizer {
+  display: none;
+}
+.studio-shell.code-focused cs-code-workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.studio-shell.code-focused .code-content {
+  flex: 1;
+  min-height: 0;
+}
+.studio-shell.code-focused .code-toolbar {
+  min-height: 54px;
+}
+.preview-studio {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+.preview-studio-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  min-height: 56px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.preview-studio-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.preview-studio-toolbar input {
+  width: 68px;
+  padding: 7px;
+}
+.preview-studio-toolbar select {
+  padding: 8px;
+}
+.preview-scale {
+  color: var(--muted);
+  font-size: 11px;
+  margin-left: auto;
+}
+.preview-studio-stage {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  place-items: center;
+}
+.preview-studio-stage > div {
+  flex-shrink: 0;
+}
+.preview-studio iframe {
+  border: 0;
+  display: block;
+  background: white;
+  transform-origin: top left;
+}
+.preview-return {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  background: var(--panel);
+  box-shadow: var(--shadow-panel);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  opacity: 0.65;
+}
+.preview-return:hover,
+.preview-return:focus-within {
+  opacity: 1;
+}
+.view-error {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 300;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+}
+.view-error button {
+  margin-left: 16px;
+  text-decoration: underline;
+}
+.studio-dialog.docs-expanded {
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+}
+@media print {
+  body {
+    overflow: visible !important;
+    background: white;
+  }
+  cs-studio > :not(.docs-dialog),
+  .docs-dialog > :not(cs-documentation) {
+    display: none !important;
+  }
+  dialog.docs-dialog[open] {
+    position: static;
+    display: block;
+    width: auto;
+    max-width: none;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+  }
+  dialog.docs-dialog::backdrop {
+    display: none;
+  }
+  .docs-dialog cs-documentation {
+    height: auto;
+  }
+  .docs-code {
+    background: white !important;
+    color: #222 !important;
+    break-inside: avoid;
+  }
+  .docs-code button {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .preview-scale {
+    display: none;
+  }
+  .focus-toolbar {
+    gap: 6px;
+    padding: 8px;
+  }
+}

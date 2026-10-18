@@ -1,0 +1,290 @@
+<div class="panel-tabs" role="tablist" aria-label="Library">
+  @for (
+    t of [
+      ["insert", "Insert"],
+      ["layers", "Layers"],
+      ["assets", "Assets"],
+    ];
+    track t[0]
+  ) {
+    <button
+      role="tab"
+      [attr.aria-selected]="tab() === t[0]"
+      [class.active]="tab() === t[0]"
+      (click)="tab.set(t[0])"
+    >
+      {{ t[1] }}
+    </button>
+  }
+</div>
+<div class="library-body">
+  <div class="search-field">
+    <cs-icon name="search" /><input
+      aria-label="Search library"
+      placeholder="Search anything…"
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+    /><kbd>/</kbd>
+  </div>
+  @if (tab() === "insert") {
+    <div class="library-heading">
+      <span>ELEMENTS</span><span class="subtle">{{ filtered().length }}</span>
+    </div>
+    <div class="category-filter">
+      @for (c of categories; track c) {
+        <button [class.active]="category() === c" (click)="category.set(c)">
+          {{ c }}
+        </button>
+      }
+    </div>
+    <div class="primitive-grid">
+      @for (p of filtered(); track p.name) {
+        <button
+          class="primitive-card"
+          draggable="true"
+          (dragstart)="drag($event, 'primitive', p.name)"
+          (click)="store.insert(p.tag, p.text ?? '', p.attributes ?? {})"
+          [attr.aria-label]="'Add ' + p.name"
+        >
+          <cs-icon [name]="p.icon" /><span>{{ p.name }}</span>
+        </button>
+      }
+    </div>
+    <details class="library-section" open>
+      <summary>
+        <span>COMPONENTS</span
+        ><span class="count">{{ components.length }}</span>
+      </summary>
+      <label class="library-category-label"
+        >Category<select
+          aria-label="Component category"
+          [ngModel]="componentCategory()"
+          (ngModelChange)="componentCategory.set($event)"
+        >
+          @for (c of componentCategories; track c) {
+            <option>{{ c }}</option>
+          }
+        </select></label
+      >
+      @for (c of filteredComponents(); track c.id) {
+        @if (matches(c.name + " " + c.description)) {
+          <div class="library-entry">
+            <button
+              class="library-row"
+              [attr.aria-label]="'Insert ' + c.name"
+              draggable="true"
+              (dragstart)="drag($event, 'component', c.id)"
+              (click)="store.loadEntry(c)"
+            >
+              <span class="row-icon"><cs-icon [name]="c.icon" /></span
+              ><span
+                ><strong>{{ c.name }}</strong
+                ><small>{{ c.category }}</small></span
+              ><cs-icon name="plus" />
+            </button>
+            <button
+              class="icon-button library-preview-button"
+              [attr.aria-label]="'Preview ' + c.name"
+              title="Preview component"
+              (click)="preview.set({ entry: c, screen: false })"
+            >
+              <cs-icon name="eye" />
+            </button>
+          </div>
+        }
+      }
+    </details>
+    <details class="library-section" open>
+      <summary>
+        <span>SCREEN TEMPLATES</span
+        ><span class="count">{{ templates.length }}</span>
+      </summary>
+      <label class="library-category-label"
+        >Category<select
+          aria-label="Screen category"
+          [ngModel]="screenCategory()"
+          (ngModelChange)="screenCategory.set($event)"
+        >
+          @for (c of screenCategories; track c) {
+            <option>{{ c }}</option>
+          }
+        </select></label
+      >
+      @for (t of filteredTemplates(); track t.id) {
+        @if (matches(t.name + " " + t.description)) {
+          <div class="library-entry">
+            <button
+              class="template-card"
+              (click)="store.loadEntry(t, true)"
+              [attr.aria-label]="'Load ' + t.name + ' template'"
+            >
+              <span
+                class="template-thumb"
+                [class.auth]="t.category === 'Authentication'"
+                [class.landing]="t.id === 'landing'"
+                ><span class="thumb-nav"></span><span class="thumb-side"></span
+                ><span class="thumb-content"
+                  ><i></i><i></i><i></i><i></i><i></i></span></span
+              ><span class="template-info"
+                ><strong>{{ t.name }}</strong
+                ><small>{{ t.category }}</small></span
+              ><cs-icon name="arrow" />
+            </button>
+            <button
+              class="icon-button library-preview-button"
+              [attr.aria-label]="'Preview ' + t.name + ' screen'"
+              title="Preview screen"
+              (click)="preview.set({ entry: t, screen: true })"
+            >
+              <cs-icon name="eye" />
+            </button>
+          </div>
+        }
+      }
+    </details>
+    <details class="library-section" open>
+      <summary>
+        <span>SAVED BLOCKS</span
+        ><span class="count">{{ store.project().components.length }}</span>
+      </summary>
+      @for (c of store.project().components; track c.id) {
+        <button class="library-row" (click)="store.insertBlock(c.id)">
+          <cs-icon name="box" /><strong>{{ c.name }}</strong
+          ><cs-icon name="plus" />
+        </button>
+      }
+      @if (!store.project().components.length) {
+        <p class="panel-hint">
+          Select an element and save it as a reusable block in the inspector.
+        </p>
+      }
+    </details>
+    <div class="library-tip">
+      <cs-icon name="pointer" />
+      <p>Click to insert, or drag onto<br />the canvas to place.</p>
+    </div>
+  } @else if (tab() === "layers") {
+    <div class="library-heading">
+      <span>PAGE STRUCTURE</span
+      ><button
+        class="icon-button small"
+        title="Group selected elements"
+        aria-label="Group selected elements"
+        (click)="store.group()"
+      >
+        <cs-icon name="box" />
+      </button>
+    </div>
+    <div class="layer-tree" role="tree" aria-label="DOM layers">
+      @for (item of layers(); track item.node.id) {
+        @if (matches(item.node.name + item.node.tag)) {
+          <button
+            role="treeitem"
+            [attr.aria-level]="item.depth + 1"
+            [attr.aria-selected]="store.selected().includes(item.node.id)"
+            class="layer-row"
+            [class.active]="store.selected().includes(item.node.id)"
+            [style.padding-left.px]="12 + item.depth * 14"
+            draggable="true"
+            (dragstart)="drag($event, 'move', item.node.id)"
+            (dragover)="$event.preventDefault()"
+            (drop)="drop($event, item.node.id)"
+            (click)="store.select(item.node.id, $event.shiftKey)"
+          >
+            <cs-icon
+              [name]="item.node.children.length ? 'down' : 'code'"
+            /><span>{{ item.node.name }}</span
+            ><small>{{ item.node.tag }}</small>
+          </button>
+        }
+      }
+    </div>
+    <div class="layer-actions">
+      <button class="quiet-button" (click)="store.reorder(-1)">Move up</button
+      ><button class="quiet-button" (click)="store.reorder(1)">
+        Move down
+      </button>
+    </div>
+  } @else {
+    <div class="library-heading">
+      <span>PROJECT ASSETS</span
+      ><span>{{ store.project().assets.length }}</span>
+    </div>
+    <label class="asset-upload"
+      ><cs-icon name="upload" /><strong>Upload an image</strong
+      ><small>PNG, JPG, WebP · up to 5 MB</small
+      ><input
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+        multiple
+        (change)="upload($event)"
+        aria-label="Upload image assets"
+    /></label>
+    <div class="asset-grid">
+      @for (asset of store.project().assets; track asset.id) {
+        <div class="asset-card">
+          <button
+            (click)="
+              store.insert('img', '', { src: asset.url, alt: asset.name })
+            "
+            [attr.aria-label]="'Insert ' + asset.name"
+          >
+            <img [src]="asset.url" [alt]="asset.name" /><span>{{
+              asset.name
+            }}</span></button
+          ><button
+            class="icon-button small"
+            [attr.aria-label]="'Remove ' + asset.name"
+            (click)="removeAsset(asset.id)"
+          >
+            <cs-icon name="trash" />
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>
+@if (preview(); as p) {
+  <section class="library-preview" role="region" aria-label="Library preview">
+    <div>
+      <span class="eyebrow"
+        >{{ p.screen ? "SCREEN" : "COMPONENT" }} PREVIEW</span
+      ><button
+        class="icon-button"
+        aria-label="Close library preview"
+        (click)="preview.set(null)"
+      >
+        <cs-icon name="close" />
+      </button>
+    </div>
+    <h3>{{ p.entry.name }}</h3>
+    <p>{{ p.entry.description }}</p>
+    <div class="library-preview-widths">
+      <button
+        [class.active]="previewWidth() === 375"
+        (click)="previewWidth.set(375)"
+      >
+        Mobile · 375px</button
+      ><button
+        [class.active]="previewWidth() === 1200"
+        (click)="previewWidth.set(1200)"
+      >
+        Desktop · 1200px
+      </button>
+    </div>
+    <div class="library-preview-stage">
+      <iframe
+        title="Library design preview"
+        sandbox="allow-same-origin"
+        [srcdoc]="previewSource()"
+        [style.width.px]="previewWidth()"
+        [style.height.px]="(300 * previewWidth()) / 320"
+        [style.transform]="'scale(' + 320 / previewWidth() + ')'"
+      ></iframe>
+    </div>
+    <button class="primary-button" (click)="insertPreview()">
+      {{ p.screen ? "Load this screen" : "Insert component"
+      }}<cs-icon name="plus" />
+    </button>
+  </section>
+}

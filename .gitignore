@@ -1,0 +1,17 @@
+node_modules/
+dist/
+release/
+.angular/
+.next/
+coverage/
+playwright-report/
+test-results/
+test-results-*/
+.generated/
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx

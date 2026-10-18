@@ -1,0 +1,78 @@
+{
+  "name": "codeship",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.11.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "start": "ng serve --host 127.0.0.1 --port 4200",
+    "build": "ng build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "lint": "eslint apps packages tests scripts docs/internal",
+    "format": "prettier --write apps packages tests docs *.json *.md",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:exports": "tsx scripts/verify-exports.ts",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "desktop:build": "pnpm build && tsx scripts/build-desktop.ts",
+    "desktop:start": "electron dist/desktop/main.cjs",
+    "dev:desktop": "tsx scripts/dev-desktop.ts",
+    "desktop:portable": "pnpm desktop:build && electron-builder --config electron-builder.portable.yml --win portable --x64",
+    "desktop:mac": "pnpm desktop:build && electron-builder --config electron-builder.macos.yml --mac --arm64 --x64 --publish never",
+    "desktop:package": "pnpm desktop:build && electron-builder --config electron-builder.yml --win nsis --x64",
+    "desktop:unpacked": "pnpm desktop:build && electron-builder --config electron-builder.yml --dir --win --x64",
+    "test:desktop": "tsx scripts/verify-desktop.ts",
+    "test:installer": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-installer.ps1",
+    "docs:build": "tsx scripts/build-docs-guide.ts",
+    "docs:verify-production": "tsx scripts/verify-production-docs.ts",
+    "source:package": "tsx scripts/package-source.ts",
+    "test:portable": "tsx scripts/verify-portable.ts"
+  },
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "fflate": "^0.8.2",
+    "monaco-editor": "0.57.0",
+    "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
+    "rxjs": "^7.8.2",
+    "tslib": "^2.8.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "dompurify": "3.4.17"
+    },
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.0",
+    "@angular/cli": "^21.2.0",
+    "@angular/compiler-cli": "^21.2.0",
+    "@axe-core/playwright": "^4.11.0",
+    "@eslint/js": "^9.39.0",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^22.19.0",
+    "electron": "44.9.0",
+    "electron-builder": "26.15.3",
+    "esbuild": "0.28.1",
+    "eslint": "^9.39.0",
+    "fake-indexeddb": "^6.2.4",
+    "jsdom": "^26.1.0",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.0",
+    "vitest": "^4.1.0"
+  },
+  "description": "CodeShip: offline visual UI engineering desktop platform",
+  "author": "CodeShip contributors"
+}

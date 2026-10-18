@@ -1,0 +1,11 @@
+# Universal document model
+
+`packages/document-model/index.ts` contains framework-independent Project, Page, ElementNode, Asset, ComponentDefinition, Styles, and Interaction interfaces. Projects have stable IDs, timestamps, metadata, an active page, design tokens, assets, and reusable definitions. Pages have a semantic element tree, a URL path, and an authoritative CSS string. Elements have stable internal IDs, semantic/custom tags, independent layer names, arbitrary safe attributes, text, children, component association, and typed interactions.
+
+CSS is authoritative source text, rather than a lossy property-only representation. Selectors targeting internal IDs use `[data-cs-id="..."]`. PostCSS edits only requested declarations, preserving unrelated syntax, nesting, comments, at-rules, custom properties, selectors, media/container rules, and animation definitions. HTML editing retains recognized internal IDs and their interactions. HTML imported without trusted existing identities receives new IDs. Mixed inline text is represented by editable spans to preserve reading order.
+
+Pure operations validate insertion, nesting, movement, ancestry, duplicate identities, grouping, removal, and updates. The editor applies operations within an immutable project transaction. Rejected transactions do not enter history. Undo and redo retain up to 80 project snapshots. Multi-selection property edits form a single transaction. Component instances are editable snapshots with a definition reference; linked propagation from a definition is not implemented.
+
+Schema 1 is the current format. `migrations.ts` explicitly upgrades the documented schema-zero shape with the pre-interaction defaults. Future or unknown versions fail clearly. JSON validation rejects unsafe attributes, URLs, polluted keys, invalid identifiers, invalid trees, unsupported interactions, invalid design tokens, and complexity above 10,000 nodes / 100 levels / 50 pages. IndexedDB schema changes are distinct from document migrations.
+
+Each subsystem reads the same model: the canvas renders it, the inspector writes it, source editing updates it, the analyzer measures its rendered DOM, persistence serializes it, and three independent exporters translate it. Canvas-only outlines, guides, selection, and empty-container markers never enter exported documents.
